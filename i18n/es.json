@@ -298,7 +298,21 @@
     "macros_breakdown": "Distribución de Macros",
     "protein": "Proteína",
     "carbs": "Carbohidratos",
-    "fat": "Grasa"
+    "fat": "Grasa",
+    "training_schedule": "Días de Entrenamiento",
+    "training_schedule_hint": "Selecciona los días que entrenas. Los macros de descanso aplican el resto.",
+    "training_day": "Día de Entrenamiento",
+    "rest_day": "Día de Descanso",
+    "save_plan": "Guardar Plan",
+    "plan_saved": "¡Plan de recomposición guardado!",
+    "save_plan_error": "Error al guardar el plan. Intenta de nuevo.",
+    "day_mon": "L",
+    "day_tue": "Ma",
+    "day_wed": "Mi",
+    "day_thu": "J",
+    "day_fri": "V",
+    "day_sat": "S",
+    "day_sun": "D"
   },
   "today": {
     "greeting": "Hola, {{name}}",

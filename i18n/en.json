@@ -297,7 +297,21 @@
     "macros_breakdown": "Macros Breakdown",
     "protein": "Protein",
     "carbs": "Carbohydrates",
-    "fat": "Fat"
+    "fat": "Fat",
+    "training_schedule": "Training Schedule",
+    "training_schedule_hint": "Select the days you train. Rest day macros will apply to the remaining days.",
+    "training_day": "Training Day",
+    "rest_day": "Rest Day",
+    "save_plan": "Save Plan",
+    "plan_saved": "Recomp plan saved!",
+    "save_plan_error": "Failed to save plan. Please try again.",
+    "day_mon": "M",
+    "day_tue": "Tu",
+    "day_wed": "W",
+    "day_thu": "Th",
+    "day_fri": "F",
+    "day_sat": "Sa",
+    "day_sun": "Su"
   },
   "today": {
     "greeting": "Hello, {{name}}",

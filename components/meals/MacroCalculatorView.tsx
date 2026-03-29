@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/actionsheet";
 import { Box } from "@/components/ui/box";
 import { Button, ButtonText } from "@/components/ui/button";
+import { DaySelector } from "@/components/ui/DaySelector";
 import {
   FormControl,
   FormControlLabel,
@@ -21,15 +22,21 @@ import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
+import { recompApi } from "@/api/recomp-api";
 import { calculateBulk } from "@/services/macros/BulkCalculatorService";
 import { calculateCut } from "@/services/macros/CutCalculatorService";
 import { calculateRecomp } from "@/services/macros/RecompCalculatorService";
 import {
   ActivityLevel,
+  BodyRecompPlanInput,
+  DayOfWeek,
   MacroCalculatorResult,
   MacroMode,
+  RecompCalculatorResult,
   Sex,
 } from "@/types/macros";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { useAuthStore } from "@/store/authStore";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
@@ -75,6 +82,8 @@ function formatImperialHeight(raw: string): string {
 
 export function MacroCalculatorView() {
   const { t } = useTranslation();
+  const toast = useAppToast();
+  const { user } = useAuthStore();
 
   const [mode, setMode] = useState<MacroMode>("cut");
   const [weight, setWeight] = useState("");
@@ -89,6 +98,9 @@ export function MacroCalculatorView() {
   const [useCustomSurplus, setUseCustomSurplus] = useState(false);
   const [surplusPercent, setSurplusPercent] = useState("10");
   const [result, setResult] = useState<MacroCalculatorResult | null>(null);
+  const [recompResult, setRecompResult] = useState<RecompCalculatorResult | null>(null);
+  const [trainingDays, setTrainingDays] = useState<DayOfWeek[]>(["mon", "wed", "fri"]);
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>("metric");
 
   const modeLabels = MODE_KEYS.map((m) => t(`macros.mode_${m}`));
@@ -98,6 +110,7 @@ export function MacroCalculatorView() {
     const idx = modeLabels.indexOf(label);
     if (idx !== -1) setMode(MODE_KEYS[idx]);
     setResult(null);
+    setRecompResult(null);
   };
 
   const handleUnitChange = (system: UnitSystem) => {
@@ -105,6 +118,7 @@ export function MacroCalculatorView() {
     setWeight("");
     setHeight("");
     setResult(null);
+    setRecompResult(null);
   };
 
   const isFormValid =
@@ -136,9 +150,33 @@ export function MacroCalculatorView() {
         mode === "bulk" ? Number.parseFloat(surplusPercent) || 10 : undefined,
     };
 
-    if (mode === "cut") setResult(calculateCut(input));
-    else if (mode === "bulk") setResult(calculateBulk(input));
-    else setResult(calculateRecomp(input));
+    if (mode === "cut") { setResult(calculateCut(input)); setRecompResult(null); }
+    else if (mode === "bulk") { setResult(calculateBulk(input)); setRecompResult(null); }
+    else { setRecompResult(calculateRecomp(input)); setResult(null); }
+  };
+
+  const handleSavePlan = async () => {
+    if (!recompResult || !user) return;
+    setIsSavingPlan(true);
+    const planInput: BodyRecompPlanInput = {
+      userId: user.id,
+      trainingCalories: recompResult.training.calories,
+      trainingProteinGrams: recompResult.training.proteinGrams,
+      trainingCarbsGrams: recompResult.training.carbsGrams,
+      trainingFatGrams: recompResult.training.fatGrams,
+      restCalories: recompResult.rest.calories,
+      restProteinGrams: recompResult.rest.proteinGrams,
+      restCarbsGrams: recompResult.rest.carbsGrams,
+      restFatGrams: recompResult.rest.fatGrams,
+      trainingDays,
+    };
+    const saveResult = await recompApi.saveBodyRecompPlan(planInput);
+    setIsSavingPlan(false);
+    if (saveResult.success) {
+      toast.success(t("macros.plan_saved"));
+    } else {
+      toast.error(t("macros.save_plan_error"));
+    }
   };
 
   const sexOptions: Sex[] = ["male", "female"];
@@ -148,6 +186,22 @@ export function MacroCalculatorView() {
         { key: "protein", grams: result.protein, pct: result.proteinPercent },
         { key: "carbs", grams: result.carbs, pct: result.carbsPercent },
         { key: "fat", grams: result.fat, pct: result.fatPercent },
+      ]
+    : [];
+
+  const trainingMacroRows: { key: MacroKey; grams: number; pct: number }[] = recompResult
+    ? [
+        { key: "protein", grams: recompResult.training.proteinGrams, pct: recompResult.training.proteinPercent },
+        { key: "carbs", grams: recompResult.training.carbsGrams, pct: recompResult.training.carbsPercent },
+        { key: "fat", grams: recompResult.training.fatGrams, pct: recompResult.training.fatPercent },
+      ]
+    : [];
+
+  const restMacroRows: { key: MacroKey; grams: number; pct: number }[] = recompResult
+    ? [
+        { key: "protein", grams: recompResult.rest.proteinGrams, pct: recompResult.rest.proteinPercent },
+        { key: "carbs", grams: recompResult.rest.carbsGrams, pct: recompResult.rest.carbsPercent },
+        { key: "fat", grams: recompResult.rest.fatGrams, pct: recompResult.rest.fatPercent },
       ]
     : [];
 
@@ -418,6 +472,18 @@ export function MacroCalculatorView() {
             </WidgetCard>
           )}
 
+          {/* Training Schedule — Recomp only */}
+          {mode === "recomp" && (
+            <WidgetCard title={t("macros.training_schedule")}>
+              <VStack space="sm">
+                <Text className="text-typography-500 text-xs">
+                  {t("macros.training_schedule_hint")}
+                </Text>
+                <DaySelector selectedDays={trainingDays} onChange={setTrainingDays} />
+              </VStack>
+            </WidgetCard>
+          )}
+
           {/* Calculate Button */}
           <Button
             action="primary"
@@ -512,6 +578,104 @@ export function MacroCalculatorView() {
                 </VStack>
               </VStack>
             </WidgetCard>
+          )}
+
+          {/* Recomp Results */}
+          {recompResult && (
+            <VStack space="md">
+              {/* BMR / TDEE summary */}
+              <WidgetCard title={t("macros.results")}>
+                <VStack space="xs">
+                  <HStack className="justify-between items-center py-1.5">
+                    <Text className="text-typography-500 text-sm">{t("macros.bmr")}</Text>
+                    <Text className="text-typography-800 dark:text-typography-100 font-semibold">
+                      {recompResult.bmr} kcal
+                    </Text>
+                  </HStack>
+                  <HStack className="justify-between items-center py-1.5">
+                    <Text className="text-typography-500 text-sm">{t("macros.tdee")}</Text>
+                    <Text className="text-typography-800 dark:text-typography-100 font-semibold">
+                      {recompResult.tdee} kcal
+                    </Text>
+                  </HStack>
+                </VStack>
+              </WidgetCard>
+
+              {/* Training Day Card */}
+              <WidgetCard title={t("macros.training_day")}>
+                <VStack space="xs">
+                  <HStack className="justify-between items-center py-2 border-b border-outline-100 dark:border-outline-800 mb-1">
+                    <Text className="text-typography-700 dark:text-typography-100 font-bold">
+                      {t("macros.target_calories")}
+                    </Text>
+                    <Text className="text-primary-500 font-bold text-lg">
+                      {recompResult.training.calories} kcal
+                    </Text>
+                  </HStack>
+                  {trainingMacroRows.map(({ key, grams, pct }) => (
+                    <HStack key={key} className="justify-between items-center py-2">
+                      <HStack space="sm" className="items-center">
+                        <Box className={`w-2.5 h-2.5 rounded-full ${MACRO_ITEM_COLORS[key]}`} />
+                        <Text className="text-typography-700 dark:text-typography-200 font-medium capitalize">
+                          {t(`macros.${key}`)}
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-center">
+                        <Text className="text-typography-800 dark:text-typography-100 font-semibold">
+                          {grams}g
+                        </Text>
+                        <Text className="text-typography-400 text-xs w-9 text-right">
+                          {pct}%
+                        </Text>
+                      </HStack>
+                    </HStack>
+                  ))}
+                </VStack>
+              </WidgetCard>
+
+              {/* Rest Day Card */}
+              <WidgetCard title={t("macros.rest_day")}>
+                <VStack space="xs">
+                  <HStack className="justify-between items-center py-2 border-b border-outline-100 dark:border-outline-800 mb-1">
+                    <Text className="text-typography-700 dark:text-typography-100 font-bold">
+                      {t("macros.target_calories")}
+                    </Text>
+                    <Text className="text-primary-500 font-bold text-lg">
+                      {recompResult.rest.calories} kcal
+                    </Text>
+                  </HStack>
+                  {restMacroRows.map(({ key, grams, pct }) => (
+                    <HStack key={key} className="justify-between items-center py-2">
+                      <HStack space="sm" className="items-center">
+                        <Box className={`w-2.5 h-2.5 rounded-full ${MACRO_ITEM_COLORS[key]}`} />
+                        <Text className="text-typography-700 dark:text-typography-200 font-medium capitalize">
+                          {t(`macros.${key}`)}
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-center">
+                        <Text className="text-typography-800 dark:text-typography-100 font-semibold">
+                          {grams}g
+                        </Text>
+                        <Text className="text-typography-400 text-xs w-9 text-right">
+                          {pct}%
+                        </Text>
+                      </HStack>
+                    </HStack>
+                  ))}
+                </VStack>
+              </WidgetCard>
+
+              {/* Save Plan Button */}
+              <Button
+                action="primary"
+                variant="outline"
+                className="h-14"
+                onPress={handleSavePlan}
+                isDisabled={isSavingPlan}
+              >
+                <ButtonText>{t("macros.save_plan")}</ButtonText>
+              </Button>
+            </VStack>
           )}
         </VStack>
 

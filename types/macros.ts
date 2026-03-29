@@ -35,3 +35,55 @@ export interface MacroCalculatorResult {
   /** Positive = surplus, negative = deficit, 0 for recomp */
   calorieDelta: number;
 }
+
+// ── Recomp-specific types ──────────────────────────────────────────────────────
+
+export type DayOfWeek = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export interface RecompDayProfile {
+  calories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatGrams: number;
+  proteinPercent: number;
+  carbsPercent: number;
+  fatPercent: number;
+}
+
+export interface RecompCalculatorResult {
+  bmr: number;
+  tdee: number;
+  training: RecompDayProfile;
+  rest: RecompDayProfile;
+}
+
+// ── Body Recomp Plan (DB entity) ───────────────────────────────────────────────
+
+export interface BodyRecompPlan {
+  id: string;
+  userId: string;
+  trainingCalories: number;
+  trainingProteinGrams: number;
+  trainingCarbsGrams: number;
+  trainingFatGrams: number;
+  restCalories: number;
+  restProteinGrams: number;
+  restCarbsGrams: number;
+  restFatGrams: number;
+  trainingDays: DayOfWeek[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BodyRecompPlanInput {
+  userId: string;
+  trainingCalories: number;
+  trainingProteinGrams: number;
+  trainingCarbsGrams: number;
+  trainingFatGrams: number;
+  restCalories: number;
+  restProteinGrams: number;
+  restCarbsGrams: number;
+  restFatGrams: number;
+  trainingDays: DayOfWeek[];
+}

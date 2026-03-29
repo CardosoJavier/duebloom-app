@@ -1,37 +1,79 @@
-import { MacroCalculatorInput, MacroCalculatorResult } from "@/types/macros";
+import {
+  MacroCalculatorInput,
+  RecompCalculatorResult,
+  RecompDayProfile,
+} from "@/types/macros";
 import { computeBMR, computeTDEE } from "./macros-utils";
 
+// MyFitnessPal nutrient-partitioning constants (per lb of bodyweight)
+const PROTEIN_PER_LB = 1.5;
+const TRAINING_CARBS_PER_LB = 1.5;
+const REST_CARBS_PER_LB = 0.35;
+const MIN_FAT_PER_LB = 0.25; // hormonal health floor
+
+function buildProfile(
+  totalCalories: number,
+  proteinGrams: number,
+  carbsGrams: number,
+  minFatGrams: number,
+): RecompDayProfile {
+  const proteinCals = proteinGrams * 4;
+  const carbsCals = carbsGrams * 4;
+  const fatGrams = Math.round(
+    Math.max((totalCalories - proteinCals - carbsCals) / 9, minFatGrams),
+  );
+
+  const actualTotal = proteinCals + carbsCals + fatGrams * 9;
+  return {
+    calories: totalCalories,
+    proteinGrams,
+    carbsGrams,
+    fatGrams,
+    proteinPercent:
+      actualTotal > 0 ? Math.round((proteinCals * 100) / actualTotal) : 0,
+    carbsPercent:
+      actualTotal > 0 ? Math.round((carbsCals * 100) / actualTotal) : 0,
+    fatPercent:
+      actualTotal > 0 ? Math.round((fatGrams * 9 * 100) / actualTotal) : 0,
+  };
+}
+
 /**
- * Body Recomposition Calculator — maintenance calories, highest protein
- * Protein: 2.4 g/kg · Fat: 0.8 g/kg · Carbs: remainder
+ * Body Recomposition Calculator — MyFitnessPal nutrient-partitioning formula.
+ *
+ * Step A: Protein = 1.5 g/lb (both days)
+ * Step B: Training carbs = 1.5 g/lb · Rest carbs = 0.35 g/lb
+ * Step C: Training calories = TDEE · Rest calories = TDEE − 10%
+ * Step D: Fat = (total − protein_cal − carb_cal) / 9, floored at 0.25 g/lb
  */
 export function calculateRecomp(
   input: MacroCalculatorInput,
-): MacroCalculatorResult {
+): RecompCalculatorResult {
   const { weightKg, activityLevel } = input;
 
   const bmr = computeBMR(input);
   const tdee = computeTDEE(bmr, activityLevel);
-  const targetCalories = tdee;
 
-  const protein = Math.round(weightKg * 2.4);
-  const fat = Math.round(weightKg * 0.8);
-  const carbCals = Math.max(0, targetCalories - protein * 4 - fat * 9);
-  const carbs = Math.round(carbCals / 4);
+  const weightLbs = weightKg * 2.20462;
 
-  const totalCals = protein * 4 + carbs * 4 + fat * 9;
+  const proteinGrams = Math.round(weightLbs * PROTEIN_PER_LB);
+  const trainingCarbsGrams = Math.round(weightLbs * TRAINING_CARBS_PER_LB);
+  const restCarbsGrams = Math.round(weightLbs * REST_CARBS_PER_LB);
+
+  const trainingCalories = tdee;
+  const restCalories = Math.round(tdee * 0.9);
+
+  const minFatGrams = weightLbs * MIN_FAT_PER_LB;
 
   return {
     bmr,
     tdee,
-    targetCalories,
-    protein,
-    carbs,
-    fat,
-    proteinPercent:
-      totalCals > 0 ? Math.round((protein * 4 * 100) / totalCals) : 0,
-    carbsPercent: totalCals > 0 ? Math.round((carbs * 4 * 100) / totalCals) : 0,
-    fatPercent: totalCals > 0 ? Math.round((fat * 9 * 100) / totalCals) : 0,
-    calorieDelta: 0,
+    training: buildProfile(
+      trainingCalories,
+      proteinGrams,
+      trainingCarbsGrams,
+      minFatGrams,
+    ),
+    rest: buildProfile(restCalories, proteinGrams, restCarbsGrams, minFatGrams),
   };
 }
