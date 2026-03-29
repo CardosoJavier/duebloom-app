@@ -44,6 +44,8 @@ import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { ProgressStatInput } from "@/types/progress";
+import { UnitSystem } from "@/types/user";
+import { kgToLbs, lbsToKg } from "@/util/weight";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -53,9 +55,8 @@ export interface AddStatsModalProps {
   onSave: (input: ProgressStatInput) => Promise<void>;
   isSaving: boolean;
   defaultDate?: string; // 'YYYY-MM-DD', defaults to today
+  unitSystem: UnitSystem;
 }
-
-type UnitToggle = "kg" | "lb";
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
@@ -65,11 +66,12 @@ export function AddStatsModal({
   onSave,
   isSaving,
   defaultDate,
+  unitSystem,
 }: Readonly<AddStatsModalProps>) {
   const { t } = useTranslation();
   const today = format(new Date(), "yyyy-MM-dd");
 
-  const [unit, setUnit] = useState<UnitToggle>("kg");
+  const unit = unitSystem === "KG" ? "kg" : "lb";
   const [weightValue, setWeightValue] = useState("");
   const [bodyFat, setBodyFat] = useState("");
   const [recordedDate, setRecordedDate] = useState(defaultDate ?? today);
@@ -80,7 +82,6 @@ export function AddStatsModal({
   }, [isOpen, defaultDate]);
 
   const reset = () => {
-    setUnit("kg");
     setWeightValue("");
     setBodyFat("");
     setRecordedDate(defaultDate ?? today);
@@ -104,9 +105,9 @@ export function AddStatsModal({
     const input: ProgressStatInput = {
       recordedDate,
       ...(weightValue &&
-        unit === "kg" && { weightKg: weight, weightLb: weight * 2.20462 }),
+        unit === "kg" && { weightKg: weight, weightLb: kgToLbs(weight) }),
       ...(weightValue &&
-        unit === "lb" && { weightLb: weight, weightKg: weight / 2.20462 }),
+        unit === "lb" && { weightLb: weight, weightKg: lbsToKg(weight) }),
       ...(fat !== undefined && !Number.isNaN(fat) && { bodyFat: fat }),
     };
 
@@ -148,30 +149,10 @@ export function AddStatsModal({
                     </FormControlLabelText>
                   </FormControlLabel>
 
-                  {/* Unit toggle */}
-                  <HStack className="gap-2 mb-2">
-                    {(["kg", "lb"] as UnitToggle[]).map((u) => (
-                      <Pressable
-                        key={u}
-                        onPress={() => setUnit(u)}
-                        className={`px-4 py-1.5 rounded-full ${
-                          unit === u
-                            ? "bg-primary-500"
-                            : "bg-background-100 dark:bg-background-700"
-                        }`}
-                      >
-                        <Text
-                          className={`text-sm font-semibold ${
-                            unit === u
-                              ? "text-white"
-                              : "text-typography-600 dark:text-typography-300"
-                          }`}
-                        >
-                          {t(`stats.unit_${u}`)}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </HStack>
+                  {/* Unit label */}
+                  <Text className="text-typography-500 dark:text-typography-400 text-sm mb-2">
+                    {t(`stats.unit_${unit}`)}
+                  </Text>
 
                   <Input className="rounded-xl">
                     <InputField

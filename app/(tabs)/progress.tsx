@@ -369,6 +369,7 @@ export default function ProgressScreen() {
         onSave={handleUpload}
         capturedDate={dateStr}
         isSaving={isSaving}
+        unitSystem={unitSystem}
       />
 
       <AddStatsModal
@@ -377,6 +378,7 @@ export default function ProgressScreen() {
         onSave={handleStatsSave}
         isSaving={isSavingStats}
         defaultDate={dateStr}
+        unitSystem={unitSystem}
       />
     </SafeAreaView>
   );

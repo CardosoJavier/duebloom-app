@@ -27,6 +27,8 @@ import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { ProgressPhotoInput } from "@/types/progress";
+import { UnitSystem } from "@/types/user";
+import { kgToLbs, lbsToKg } from "@/util/weight";
 
 type PhotoView = "front" | "side" | "back";
 
@@ -36,6 +38,7 @@ interface AddProgressModalProps {
   onSave: (input: ProgressPhotoInput) => Promise<void>;
   capturedDate: string;
   isSaving: boolean;
+  unitSystem: UnitSystem;
 }
 
 export function AddProgressModal({
@@ -44,6 +47,7 @@ export function AddProgressModal({
   onSave,
   capturedDate,
   isSaving,
+  unitSystem,
 }: Readonly<AddProgressModalProps>) {
   const { t } = useTranslation();
   const [photos, setPhotos] = useState<Record<PhotoView, string | null>>({
@@ -51,14 +55,12 @@ export function AddProgressModal({
     side: null,
     back: null,
   });
-  const [weightKg, setWeightKg] = useState("");
-  const [weightLb, setWeightLb] = useState("");
+  const [weight, setWeight] = useState("");
   const [bodyFat, setBodyFat] = useState("");
 
   const reset = () => {
     setPhotos({ front: null, side: null, back: null });
-    setWeightKg("");
-    setWeightLb("");
+    setWeight("");
     setBodyFat("");
   };
 
@@ -104,13 +106,22 @@ export function AddProgressModal({
       return;
     }
 
+    const parsedWeight = weight ? Number.parseFloat(weight) : undefined;
+
+    let weightKg: number | undefined;
+    let weightLb: number | undefined;
+    if (parsedWeight !== undefined) {
+      weightKg = unitSystem === "KG" ? parsedWeight : lbsToKg(parsedWeight);
+      weightLb = unitSystem === "LB" ? parsedWeight : kgToLbs(parsedWeight);
+    }
+
     await onSave({
       frontUri: photos.front,
       sideUri: photos.side,
       backUri: photos.back,
       capturedDate,
-      weightKg: weightKg ? Number.parseFloat(weightKg) : undefined,
-      weightLb: weightLb ? Number.parseFloat(weightLb) : undefined,
+      weightKg,
+      weightLb,
       bodyFat: bodyFat ? Number.parseFloat(bodyFat) : undefined,
     });
 
@@ -207,29 +218,16 @@ export function AddProgressModal({
                 <FormControl className="flex-1">
                   <FormControlLabel className="mb-1">
                     <FormControlLabelText className="text-typography-600 dark:text-typography-300 text-xs">
-                      {t("progress.weight_kg")}
+                      {unitSystem === "KG"
+                        ? t("progress.weight_kg")
+                        : t("progress.weight_lb")}
                     </FormControlLabelText>
                   </FormControlLabel>
                   <Input size="sm" className="rounded-xl">
                     <InputField
                       keyboardType="decimal-pad"
-                      value={weightKg}
-                      onChangeText={setWeightKg}
-                      placeholder="—"
-                    />
-                  </Input>
-                </FormControl>
-                <FormControl className="flex-1">
-                  <FormControlLabel className="mb-1">
-                    <FormControlLabelText className="text-typography-600 dark:text-typography-300 text-xs">
-                      {t("progress.weight_lb")}
-                    </FormControlLabelText>
-                  </FormControlLabel>
-                  <Input size="sm" className="rounded-xl">
-                    <InputField
-                      keyboardType="decimal-pad"
-                      value={weightLb}
-                      onChangeText={setWeightLb}
+                      value={weight}
+                      onChangeText={setWeight}
                       placeholder="—"
                     />
                   </Input>
