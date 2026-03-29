@@ -32,7 +32,7 @@ import {
 } from "@/types/macros";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 
 const ACTIVITY_LEVELS: ActivityLevel[] = [
   "sedentary",
@@ -152,404 +152,410 @@ export function MacroCalculatorView() {
     : [];
 
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
     >
-      <VStack space="md" className="pb-6">
-        {/* Mode toggle */}
-        <SegmentedControl
-          options={modeLabels}
-          selectedValue={activeModeLabel}
-          onValueChange={handleModeChange}
-          containerStyle="mb-2"
-        />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+      >
+        <VStack space="md" className="pb-6">
+          {/* Mode toggle */}
+          <SegmentedControl
+            options={modeLabels}
+            selectedValue={activeModeLabel}
+            onValueChange={handleModeChange}
+            containerStyle="mb-2"
+          />
 
-        {/* Personal Info */}
-        <WidgetCard
-          title={t("macros.personal_info")}
-          headerRight={
-            <HStack space="xs">
-              {(["metric", "imperial"] as UnitSystem[]).map((sys) => {
-                const isActive = unitSystem === sys;
-                return (
-                  <Pressable
-                    key={sys}
-                    onPress={() => handleUnitChange(sys)}
-                    className={`px-3 h-7 rounded-lg items-center justify-center border ${
-                      isActive
-                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                        : "border-slate-200 dark:border-slate-600 bg-background-100"
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-semibold ${
-                        isActive ? "text-primary-500" : "text-typography-400"
+          {/* Personal Info */}
+          <WidgetCard
+            title={t("macros.personal_info")}
+            headerRight={
+              <HStack space="xs">
+                {(["metric", "imperial"] as UnitSystem[]).map((sys) => {
+                  const isActive = unitSystem === sys;
+                  return (
+                    <Pressable
+                      key={sys}
+                      onPress={() => handleUnitChange(sys)}
+                      className={`px-3 h-7 rounded-lg items-center justify-center border ${
+                        isActive
+                          ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                          : "border-slate-200 dark:border-slate-600 bg-background-100"
                       }`}
                     >
-                      {t(`macros.unit_${sys}`)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </HStack>
-          }
-        >
-          <VStack space="md">
-            {/* Weight + Height */}
-            <HStack space="md">
-              <FormControl className="flex-1">
-                <FormControlLabel>
-                  <FormControlLabelText className="text-typography-500 text-xs">
-                    {t(
-                      unitSystem === "metric"
-                        ? "macros.weight_kg"
-                        : "macros.weight_lbs",
-                    )}
-                  </FormControlLabelText>
-                </FormControlLabel>
-                <Input variant="soft" size="md">
-                  <InputField
-                    value={weight}
-                    onChangeText={setWeight}
-                    keyboardType="decimal-pad"
-                    placeholder={unitSystem === "metric" ? "70" : "155"}
-                  />
-                </Input>
-              </FormControl>
-
-              <FormControl className="flex-1">
-                <FormControlLabel>
-                  <FormControlLabelText className="text-typography-500 text-xs">
-                    {t(
-                      unitSystem === "metric"
-                        ? "macros.height_cm"
-                        : "macros.height_ft",
-                    )}
-                  </FormControlLabelText>
-                </FormControlLabel>
-                <Input variant="soft" size="md">
-                  <InputField
-                    value={height}
-                    onChangeText={(text) => {
-                      if (unitSystem === "imperial") {
-                        setHeight(formatImperialHeight(text));
-                      } else {
-                        setHeight(text);
-                      }
-                    }}
-                    keyboardType="number-pad"
-                    placeholder={unitSystem === "metric" ? "175" : "5'10"}
-                  />
-                </Input>
-              </FormControl>
-            </HStack>
-
-            {/* Age + Sex */}
-            <HStack space="md" className="items-center">
-              <FormControl className="flex-1">
-                <FormControlLabel>
-                  <FormControlLabelText className="text-typography-500 text-xs">
-                    {t("macros.age")}
-                  </FormControlLabelText>
-                </FormControlLabel>
-                <Input variant="soft" size="md">
-                  <InputField
-                    value={age}
-                    onChangeText={setAge}
-                    keyboardType="number-pad"
-                    placeholder="25"
-                  />
-                </Input>
-              </FormControl>
-
-              <FormControl className="flex-1">
-                <FormControlLabel>
-                  <FormControlLabelText className="text-typography-500 text-xs">
-                    {t("macros.sex")}
-                  </FormControlLabelText>
-                </FormControlLabel>
-                <HStack space="xs" className="h-[42px]">
-                  {sexOptions.map((s) => {
-                    const isActive = sex === s;
-                    return (
-                      <Pressable
-                        key={s}
-                        onPress={() => setSex(s)}
-                        className={`flex-1 h-full rounded-xl items-center justify-center border ${
-                          isActive
-                            ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                            : "border-slate-200 dark:border-slate-600 bg-background-100"
+                      <Text
+                        className={`text-xs font-semibold ${
+                          isActive ? "text-primary-500" : "text-typography-400"
                         }`}
                       >
-                        <Text
-                          className={`text-sm font-semibold ${
-                            isActive
-                              ? "text-primary-500"
-                              : "text-typography-500"
-                          }`}
-                        >
-                          {t(`macros.sex_${s}`)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </HStack>
-              </FormControl>
-            </HStack>
-
-            {/* Activity Level */}
-            <FormControl>
-              <FormControlLabel>
-                <FormControlLabelText className="text-typography-600 text-xs dark:text-typography-400">
-                  {t("macros.activity_level")}
-                </FormControlLabelText>
-              </FormControlLabel>
-              <Text className="text-typography-400 text-xs mb-1.5 dark:text-typography-600">
-                {t("macros.activity_level_hint")}
-              </Text>
-              <Pressable
-                onPress={() => setIsActivityPickerOpen(true)}
-                className="h-[42px] rounded-xl px-3 items-center flex-row justify-between bg-background-100"
-              >
-                <Text
-                  className="text-slate-800 dark:text-typography-0 font-medium text-sm flex-1 mr-2"
-                  numberOfLines={1}
-                >
-                  {t(`macros.activity_${activityLevel}`)}
-                </Text>
-                <Text className="text-typography-400 text-xs">▼</Text>
-              </Pressable>
-            </FormControl>
-          </VStack>
-        </WidgetCard>
-
-        {/* Goal Settings — Cut / Bulk only */}
-        {mode !== "recomp" && (
-          <WidgetCard title={t("macros.goal_settings")}>
+                        {t(`macros.unit_${sys}`)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </HStack>
+            }
+          >
             <VStack space="md">
-              <Text className="text-typography-500 text-xs">
-                {mode === "cut"
-                  ? t("macros.goal_settings_cut_hint")
-                  : t("macros.goal_settings_bulk_hint")}
-              </Text>
+              {/* Weight + Height */}
+              <HStack space="md">
+                <FormControl className="flex-1">
+                  <FormControlLabel>
+                    <FormControlLabelText className="text-typography-500 text-xs">
+                      {t(
+                        unitSystem === "metric"
+                          ? "macros.weight_kg"
+                          : "macros.weight_lbs",
+                      )}
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input variant="soft" size="md">
+                    <InputField
+                      value={weight}
+                      onChangeText={setWeight}
+                      keyboardType="decimal-pad"
+                      placeholder={unitSystem === "metric" ? "70" : "155"}
+                    />
+                  </Input>
+                </FormControl>
 
-              {mode === "cut" ? (
-                <VStack space="sm">
-                  <HStack space="sm">
-                    {[false, true].map((isCustom) => {
-                      const isActive = useCustomDeficit === isCustom;
+                <FormControl className="flex-1">
+                  <FormControlLabel>
+                    <FormControlLabelText className="text-typography-500 text-xs">
+                      {t(
+                        unitSystem === "metric"
+                          ? "macros.height_cm"
+                          : "macros.height_ft",
+                      )}
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input variant="soft" size="md">
+                    <InputField
+                      value={height}
+                      onChangeText={(text) => {
+                        if (unitSystem === "imperial") {
+                          setHeight(formatImperialHeight(text));
+                        } else {
+                          setHeight(text);
+                        }
+                      }}
+                      keyboardType="number-pad"
+                      placeholder={unitSystem === "metric" ? "175" : "5'10"}
+                    />
+                  </Input>
+                </FormControl>
+              </HStack>
+
+              {/* Age + Sex */}
+              <HStack space="md" className="items-center">
+                <FormControl className="flex-1">
+                  <FormControlLabel>
+                    <FormControlLabelText className="text-typography-500 text-xs">
+                      {t("macros.age")}
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input variant="soft" size="md">
+                    <InputField
+                      value={age}
+                      onChangeText={setAge}
+                      keyboardType="number-pad"
+                      placeholder="25"
+                    />
+                  </Input>
+                </FormControl>
+
+                <FormControl className="flex-1">
+                  <FormControlLabel>
+                    <FormControlLabelText className="text-typography-500 text-xs">
+                      {t("macros.sex")}
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <HStack space="xs" className="h-[42px]">
+                    {sexOptions.map((s) => {
+                      const isActive = sex === s;
                       return (
                         <Pressable
-                          key={String(isCustom)}
-                          onPress={() => setUseCustomDeficit(isCustom)}
-                          className={`flex-1 h-10 rounded-xl items-center justify-center border ${
+                          key={s}
+                          onPress={() => setSex(s)}
+                          className={`flex-1 h-full rounded-xl items-center justify-center border ${
                             isActive
                               ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
                               : "border-slate-200 dark:border-slate-600 bg-background-100"
                           }`}
                         >
                           <Text
-                            className={`text-sm font-semibold ${isActive ? "text-primary-500" : "text-typography-500"}`}
+                            className={`text-sm font-semibold ${
+                              isActive
+                                ? "text-primary-500"
+                                : "text-typography-500"
+                            }`}
                           >
-                            {isCustom
-                              ? t("macros.custom")
-                              : t("macros.default_20")}
+                            {t(`macros.sex_${s}`)}
                           </Text>
                         </Pressable>
                       );
                     })}
                   </HStack>
-                  {useCustomDeficit && (
-                    <Input variant="soft" size="md">
-                      <InputField
-                        value={deficitPercent}
-                        onChangeText={setDeficitPercent}
-                        keyboardType="decimal-pad"
-                        placeholder={t("macros.custom_deficit_placeholder")}
-                      />
-                    </Input>
-                  )}
-                </VStack>
-              ) : (
-                <VStack space="sm">
-                  <HStack space="sm">
-                    {[false, true].map((isCustom) => {
-                      const isActive = useCustomSurplus === isCustom;
-                      return (
-                        <Pressable
-                          key={String(isCustom)}
-                          onPress={() => setUseCustomSurplus(isCustom)}
-                          className={`flex-1 h-10 rounded-xl items-center justify-center border ${
-                            isActive
-                              ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                              : "border-slate-200 dark:border-slate-600 bg-background-100"
-                          }`}
-                        >
-                          <Text
-                            className={`text-sm font-semibold ${isActive ? "text-primary-500" : "text-typography-500"}`}
-                          >
-                            {isCustom
-                              ? t("macros.custom")
-                              : t("macros.default_10")}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </HStack>
-                  {useCustomSurplus && (
-                    <Input variant="soft" size="md">
-                      <InputField
-                        value={surplusPercent}
-                        onChangeText={setSurplusPercent}
-                        keyboardType="decimal-pad"
-                        placeholder={t("macros.custom_surplus_placeholder")}
-                      />
-                    </Input>
-                  )}
-                </VStack>
-              )}
+                </FormControl>
+              </HStack>
+
+              {/* Activity Level */}
+              <FormControl>
+                <FormControlLabel>
+                  <FormControlLabelText className="text-typography-600 text-xs dark:text-typography-400">
+                    {t("macros.activity_level")}
+                  </FormControlLabelText>
+                </FormControlLabel>
+                <Text className="text-typography-400 text-xs mb-1.5 dark:text-typography-600">
+                  {t("macros.activity_level_hint")}
+                </Text>
+                <Pressable
+                  onPress={() => setIsActivityPickerOpen(true)}
+                  className="h-[42px] rounded-xl px-3 items-center flex-row justify-between bg-background-100"
+                >
+                  <Text
+                    className="text-slate-800 dark:text-typography-0 font-medium text-sm flex-1 mr-2"
+                    numberOfLines={1}
+                  >
+                    {t(`macros.activity_${activityLevel}`)}
+                  </Text>
+                  <Text className="text-typography-400 text-xs">▼</Text>
+                </Pressable>
+              </FormControl>
             </VStack>
           </WidgetCard>
-        )}
 
-        {/* Calculate Button */}
-        <Button
-          action="primary"
-          className="h-14"
-          onPress={handleCalculate}
-          isDisabled={!isFormValid}
-        >
-          <ButtonText>{t("macros.calculate")}</ButtonText>
-        </Button>
+          {/* Goal Settings — Cut / Bulk only */}
+          {mode !== "recomp" && (
+            <WidgetCard title={t("macros.goal_settings")}>
+              <VStack space="md">
+                <Text className="text-typography-500 text-xs">
+                  {mode === "cut"
+                    ? t("macros.goal_settings_cut_hint")
+                    : t("macros.goal_settings_bulk_hint")}
+                </Text>
 
-        {/* Results */}
-        {result && (
-          <WidgetCard title={t("macros.results")}>
-            <VStack space="xs">
-              {/* BMR */}
-              <HStack className="justify-between items-center py-1.5">
-                <Text className="text-typography-500 text-sm">
-                  {t("macros.bmr")}
-                </Text>
-                <Text className="text-typography-800 dark:text-typography-100 font-semibold">
-                  {result.bmr} kcal
-                </Text>
-              </HStack>
+                {mode === "cut" ? (
+                  <VStack space="sm">
+                    <HStack space="sm">
+                      {[false, true].map((isCustom) => {
+                        const isActive = useCustomDeficit === isCustom;
+                        return (
+                          <Pressable
+                            key={String(isCustom)}
+                            onPress={() => setUseCustomDeficit(isCustom)}
+                            className={`flex-1 h-10 rounded-xl items-center justify-center border ${
+                              isActive
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-slate-200 dark:border-slate-600 bg-background-100"
+                            }`}
+                          >
+                            <Text
+                              className={`text-sm font-semibold ${isActive ? "text-primary-500" : "text-typography-500"}`}
+                            >
+                              {isCustom
+                                ? t("macros.custom")
+                                : t("macros.default_20")}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </HStack>
+                    {useCustomDeficit && (
+                      <Input variant="soft" size="md">
+                        <InputField
+                          value={deficitPercent}
+                          onChangeText={setDeficitPercent}
+                          keyboardType="decimal-pad"
+                          placeholder={t("macros.custom_deficit_placeholder")}
+                        />
+                      </Input>
+                    )}
+                  </VStack>
+                ) : (
+                  <VStack space="sm">
+                    <HStack space="sm">
+                      {[false, true].map((isCustom) => {
+                        const isActive = useCustomSurplus === isCustom;
+                        return (
+                          <Pressable
+                            key={String(isCustom)}
+                            onPress={() => setUseCustomSurplus(isCustom)}
+                            className={`flex-1 h-10 rounded-xl items-center justify-center border ${
+                              isActive
+                                ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                                : "border-slate-200 dark:border-slate-600 bg-background-100"
+                            }`}
+                          >
+                            <Text
+                              className={`text-sm font-semibold ${isActive ? "text-primary-500" : "text-typography-500"}`}
+                            >
+                              {isCustom
+                                ? t("macros.custom")
+                                : t("macros.default_10")}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </HStack>
+                    {useCustomSurplus && (
+                      <Input variant="soft" size="md">
+                        <InputField
+                          value={surplusPercent}
+                          onChangeText={setSurplusPercent}
+                          keyboardType="decimal-pad"
+                          placeholder={t("macros.custom_surplus_placeholder")}
+                        />
+                      </Input>
+                    )}
+                  </VStack>
+                )}
+              </VStack>
+            </WidgetCard>
+          )}
 
-              {/* TDEE */}
-              <HStack className="justify-between items-center py-1.5">
-                <Text className="text-typography-500 text-sm">
-                  {t("macros.tdee")}
-                </Text>
-                <Text className="text-typography-800 dark:text-typography-100 font-semibold">
-                  {result.tdee} kcal
-                </Text>
-              </HStack>
+          {/* Calculate Button */}
+          <Button
+            action="primary"
+            className="h-14"
+            onPress={handleCalculate}
+            isDisabled={!isFormValid}
+          >
+            <ButtonText>{t("macros.calculate")}</ButtonText>
+          </Button>
 
-              {/* Target */}
-              <HStack className="justify-between items-center py-2 border-t border-outline-100 dark:border-outline-800 mt-1">
-                <Text className="text-typography-700 dark:text-typography-100 font-bold">
-                  {t("macros.target_calories")}
-                </Text>
-                <Text className="text-primary-500 font-bold text-lg">
-                  {result.targetCalories} kcal
-                </Text>
-              </HStack>
-
-              {/* Delta */}
-              {result.calorieDelta !== 0 && (
+          {/* Results */}
+          {result && (
+            <WidgetCard title={t("macros.results")}>
+              <VStack space="xs">
+                {/* BMR */}
                 <HStack className="justify-between items-center py-1.5">
                   <Text className="text-typography-500 text-sm">
-                    {t("macros.delta")}
+                    {t("macros.bmr")}
                   </Text>
-                  <Text
-                    className={`font-semibold ${
-                      result.calorieDelta < 0
-                        ? "text-success-600"
-                        : "text-warning-600"
-                    }`}
-                  >
-                    {result.calorieDelta > 0 ? "+" : ""}
-                    {result.calorieDelta} kcal
+                  <Text className="text-typography-800 dark:text-typography-100 font-semibold">
+                    {result.bmr} kcal
                   </Text>
                 </HStack>
-              )}
 
-              {/* Macros breakdown */}
-              <VStack className="mt-3 pt-3 border-t border-outline-100 dark:border-outline-800">
-                <Text className="text-typography-500 text-xs uppercase font-bold tracking-wider mb-2">
-                  {t("macros.macros_breakdown")}
-                </Text>
-                {macroRows.map(({ key, grams, pct }) => (
-                  <HStack
-                    key={key}
-                    className="justify-between items-center py-2"
-                  >
-                    <HStack space="sm" className="items-center">
-                      <Box
-                        className={`w-2.5 h-2.5 rounded-full ${MACRO_ITEM_COLORS[key]}`}
-                      />
-                      <Text className="text-typography-700 dark:text-typography-200 font-medium capitalize">
-                        {t(`macros.${key}`)}
-                      </Text>
-                    </HStack>
-                    <HStack space="sm" className="items-center">
-                      <Text className="text-typography-800 dark:text-typography-100 font-semibold">
-                        {grams}g
-                      </Text>
-                      <Text className="text-typography-400 text-xs w-9 text-right">
-                        {pct}%
-                      </Text>
-                    </HStack>
+                {/* TDEE */}
+                <HStack className="justify-between items-center py-1.5">
+                  <Text className="text-typography-500 text-sm">
+                    {t("macros.tdee")}
+                  </Text>
+                  <Text className="text-typography-800 dark:text-typography-100 font-semibold">
+                    {result.tdee} kcal
+                  </Text>
+                </HStack>
+
+                {/* Target */}
+                <HStack className="justify-between items-center py-2 border-t border-outline-100 dark:border-outline-800 mt-1">
+                  <Text className="text-typography-700 dark:text-typography-100 font-bold">
+                    {t("macros.target_calories")}
+                  </Text>
+                  <Text className="text-primary-500 font-bold text-lg">
+                    {result.targetCalories} kcal
+                  </Text>
+                </HStack>
+
+                {/* Delta */}
+                {result.calorieDelta !== 0 && (
+                  <HStack className="justify-between items-center py-1.5">
+                    <Text className="text-typography-500 text-sm">
+                      {t("macros.delta")}
+                    </Text>
+                    <Text
+                      className={`font-semibold ${
+                        result.calorieDelta < 0
+                          ? "text-success-600"
+                          : "text-warning-600"
+                      }`}
+                    >
+                      {result.calorieDelta > 0 ? "+" : ""}
+                      {result.calorieDelta} kcal
+                    </Text>
                   </HStack>
-                ))}
-              </VStack>
-            </VStack>
-          </WidgetCard>
-        )}
-      </VStack>
+                )}
 
-      {/* Activity Level ActionSheet */}
-      <Actionsheet
-        isOpen={isActivityPickerOpen}
-        onClose={() => setIsActivityPickerOpen(false)}
-      >
-        <ActionsheetBackdrop />
-        <ActionsheetContent className="bg-background-0 dark:bg-background-dark border-t border-outline-200 dark:border-outline-800 rounded-t-3xl pt-2 pb-10">
-          <ActionsheetDragIndicatorWrapper>
-            <ActionsheetDragIndicator className="bg-outline-400 dark:bg-outline-700" />
-          </ActionsheetDragIndicatorWrapper>
-          <Text className="text-typography-800 dark:text-typography-100 font-bold text-base mt-2 mb-3 px-2 w-full">
-            {t("macros.activity_level")}
-          </Text>
-          {ACTIVITY_LEVELS.map((level) => {
-            const isSelected = activityLevel === level;
-            return (
-              <ActionsheetItem
-                key={level}
-                onPress={() => {
-                  setActivityLevel(level);
-                  setIsActivityPickerOpen(false);
-                }}
-                className={
-                  isSelected ? "bg-primary-50 dark:bg-primary-900/20" : ""
-                }
-              >
-                <ActionsheetItemText
+                {/* Macros breakdown */}
+                <VStack className="mt-3 pt-3 border-t border-outline-100 dark:border-outline-800">
+                  <Text className="text-typography-500 text-xs uppercase font-bold tracking-wider mb-2">
+                    {t("macros.macros_breakdown")}
+                  </Text>
+                  {macroRows.map(({ key, grams, pct }) => (
+                    <HStack
+                      key={key}
+                      className="justify-between items-center py-2"
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Box
+                          className={`w-2.5 h-2.5 rounded-full ${MACRO_ITEM_COLORS[key]}`}
+                        />
+                        <Text className="text-typography-700 dark:text-typography-200 font-medium capitalize">
+                          {t(`macros.${key}`)}
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-center">
+                        <Text className="text-typography-800 dark:text-typography-100 font-semibold">
+                          {grams}g
+                        </Text>
+                        <Text className="text-typography-400 text-xs w-9 text-right">
+                          {pct}%
+                        </Text>
+                      </HStack>
+                    </HStack>
+                  ))}
+                </VStack>
+              </VStack>
+            </WidgetCard>
+          )}
+        </VStack>
+
+        {/* Activity Level ActionSheet */}
+        <Actionsheet
+          isOpen={isActivityPickerOpen}
+          onClose={() => setIsActivityPickerOpen(false)}
+        >
+          <ActionsheetBackdrop />
+          <ActionsheetContent className="bg-background-0 dark:bg-background-dark border-t border-outline-200 dark:border-outline-800 rounded-t-3xl pt-2 pb-10">
+            <ActionsheetDragIndicatorWrapper>
+              <ActionsheetDragIndicator className="bg-outline-400 dark:bg-outline-700" />
+            </ActionsheetDragIndicatorWrapper>
+            <Text className="text-typography-800 dark:text-typography-100 font-bold text-base mt-2 mb-3 px-2 w-full">
+              {t("macros.activity_level")}
+            </Text>
+            {ACTIVITY_LEVELS.map((level) => {
+              const isSelected = activityLevel === level;
+              return (
+                <ActionsheetItem
+                  key={level}
+                  onPress={() => {
+                    setActivityLevel(level);
+                    setIsActivityPickerOpen(false);
+                  }}
                   className={
-                    isSelected
-                      ? "text-primary-500 font-semibold"
-                      : "text-typography-700 dark:text-typography-200"
+                    isSelected ? "bg-primary-50 dark:bg-primary-900/20" : ""
                   }
                 >
-                  {t(`macros.activity_${level}`)}
-                </ActionsheetItemText>
-              </ActionsheetItem>
-            );
-          })}
-        </ActionsheetContent>
-      </Actionsheet>
-    </ScrollView>
+                  <ActionsheetItemText
+                    className={
+                      isSelected
+                        ? "text-primary-500 font-semibold"
+                        : "text-typography-700 dark:text-typography-200"
+                    }
+                  >
+                    {t(`macros.activity_${level}`)}
+                  </ActionsheetItemText>
+                </ActionsheetItem>
+              );
+            })}
+          </ActionsheetContent>
+        </Actionsheet>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
