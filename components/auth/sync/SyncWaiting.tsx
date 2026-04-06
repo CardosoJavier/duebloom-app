@@ -7,9 +7,8 @@ import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "expo-router";
-import { LogOut } from "lucide-react-native";
+import { X } from "lucide-react-native";
 
 interface SyncWaitingProps {
   myCode?: string;
@@ -17,13 +16,7 @@ interface SyncWaitingProps {
 
 export const SyncWaiting = ({ myCode }: SyncWaitingProps) => {
   const { t } = useTranslation();
-  const { logout } = useAuthStore();
   const router = useRouter();
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/(auth)/login");
-  };
 
   return (
     <VStack space="xl" className="items-center py-8 w-full">
@@ -53,11 +46,11 @@ export const SyncWaiting = ({ myCode }: SyncWaitingProps) => {
         action="secondary"
         size="md"
         className="mt-4"
-        onPress={handleLogout}
+        onPress={() => router.back()}
       >
-        <ButtonIcon as={LogOut} className="mr-2 text-slate-500" />
+        <ButtonIcon as={X} className="mr-2 text-slate-500" />
         <ButtonText className="text-slate-500">
-          {t("auth.back_to_login")}
+          {t("profile.cancel_sync")}
         </ButtonText>
       </Button>
     </VStack>

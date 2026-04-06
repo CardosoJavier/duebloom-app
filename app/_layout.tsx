@@ -22,45 +22,27 @@ export const unstable_settings = {
 };
 
 function InitialLayout() {
-  const { isAuthenticated, isInitializing, checkAuth, checkSyncStatus } =
-    useAuthStore();
+  const { isAuthenticated, isInitializing, checkAuth } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
-  const [isCheckingSync, setIsCheckingSync] = useState(true);
-
   useEffect(() => {
-    checkAuth().finally(() => {
-      setIsCheckingSync(false);
-    });
+    checkAuth();
   }, []);
 
   useEffect(() => {
-    const handleNavigation = async () => {
-      if (isInitializing || isCheckingSync) return;
+    if (isInitializing) return;
 
-      const inAuthGroup = segments[0] === "(auth)";
+    const inAuthGroup = segments[0] === "(auth)";
 
-      if (!isAuthenticated && !inAuthGroup) {
-        router.replace("/(auth)/login");
-      } else if (isAuthenticated) {
-        // Check if user is synced (Partner Requirement)
-        const isSynced = await checkSyncStatus();
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace("/(auth)/login");
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace("/(tabs)");
+    }
+  }, [isAuthenticated, isInitializing, segments]);
 
-        if (!isSynced) {
-          if (segments[1] !== "bloom") {
-            router.replace("/(auth)/bloom");
-          }
-        } else if (inAuthGroup) {
-          router.replace("/(tabs)");
-        }
-      }
-    };
-
-    handleNavigation();
-  }, [isAuthenticated, isInitializing, isCheckingSync, segments]);
-
-  if (isInitializing || isCheckingSync) {
+  if (isInitializing) {
     return <LoadingSplash />;
   }
 
@@ -73,6 +55,7 @@ function InitialLayout() {
     >
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="sync" />
     </Stack>
   );
 }

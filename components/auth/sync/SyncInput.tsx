@@ -1,6 +1,6 @@
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
-import { ArrowRight, Copy, Heart, LogOut, User } from "lucide-react-native";
+import { ArrowRight, Copy, Heart, User, X } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,7 +16,6 @@ import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { useAuthStore } from "@/store/authStore";
 
 interface SyncInputProps {
   myCode?: string;
@@ -28,7 +27,6 @@ export const SyncInput = ({ myCode, onConnect, isLoading }: SyncInputProps) => {
   const { t } = useTranslation();
   const toast = useAppToast();
   const [partnerCode, setPartnerCode] = useState("");
-  const { logout } = useAuthStore();
   const router = useRouter();
 
   const copyToClipboard = async () => {
@@ -36,11 +34,6 @@ export const SyncInput = ({ myCode, onConnect, isLoading }: SyncInputProps) => {
       await Clipboard.setStringAsync(myCode);
       toast.success(t("common.success"), "Code copied to clipboard");
     }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/(auth)/login");
   };
 
   return (
@@ -92,7 +85,12 @@ export const SyncInput = ({ myCode, onConnect, isLoading }: SyncInputProps) => {
         </Box>
 
         <VStack space="xs" className="mt-2">
-          <Input variant="soft" size="xl" className="w-full" isDisabled={isLoading}>
+          <Input
+            variant="soft"
+            size="xl"
+            className="w-full"
+            isDisabled={isLoading}
+          >
             <InputSlot className="pl-4">
               <InputIcon as={Heart} className="text-rose-400" />
             </InputSlot>
@@ -130,11 +128,11 @@ export const SyncInput = ({ myCode, onConnect, isLoading }: SyncInputProps) => {
           action="secondary"
           size="md"
           className="mt-4"
-          onPress={handleLogout}
+          onPress={() => router.back()}
         >
-          <ButtonIcon as={LogOut} className="mr-2 text-slate-500" />
+          <ButtonIcon as={X} className="mr-2 text-slate-500" />
           <ButtonText className="text-slate-500">
-            {t("auth.back_to_login")}
+            {t("profile.skip_for_now")}
           </ButtonText>
         </Button>
       </VStack>

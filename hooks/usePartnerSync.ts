@@ -35,7 +35,7 @@ export const usePartnerSync = () => {
     const relRes = await syncApi.getRelationship(user.id);
     if (relRes.success && relRes.data) {
       stopPolling();
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/profile");
       return;
     }
 
@@ -116,7 +116,7 @@ export const usePartnerSync = () => {
       if (res.data.status === "SYNC_COMPLETED") {
         toast.success(t("common.success"), "Sync completed!");
         stopPolling();
-        router.replace("/(tabs)");
+        router.replace("/(tabs)/profile");
       } else {
         setIsConfirmed(true);
         toast.info(t("common.info"), "Waiting for partner to confirm...");

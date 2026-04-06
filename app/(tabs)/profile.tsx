@@ -11,12 +11,14 @@ import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
 import { useAuthStore } from "@/store/authStore";
 import * as Clipboard from "expo-clipboard";
+import { useRouter } from "expo-router";
 import {
   ChevronRight,
   Copy,
   Heart,
   Link as LinkIcon,
   User,
+  Users,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,6 +28,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function ProfileScreen() {
   const { user, logout, partner, setPartner } = useAuthStore();
   const { t } = useTranslation();
+  const router = useRouter();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -118,27 +121,66 @@ export default function ProfileScreen() {
             </VStack>
           </WidgetCard>
 
-          {/* Partner Status */}
-          <WidgetCard>
-            <HStack className="items-center justify-between">
-              <HStack space="md" className="items-center">
-                <Box className="relative">
-                  <Box className="h-12 w-12 rounded-full bg-background-100 items-center justify-center overflow-hidden">
-                    <Icon as={User} size="md" className="text-typography-400" />
+          {/* Partner Status / Sync CTA */}
+          {partner ? (
+            <WidgetCard>
+              <HStack className="items-center justify-between">
+                <HStack space="md" className="items-center">
+                  <Box className="relative">
+                    <Box className="h-12 w-12 rounded-full bg-background-100 items-center justify-center overflow-hidden">
+                      <Icon
+                        as={User}
+                        size="md"
+                        className="text-typography-400"
+                      />
+                    </Box>
+                    <Box className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1 border-2 border-background-50">
+                      <Icon
+                        as={Heart}
+                        size="xs"
+                        className="text-white w-3 h-3"
+                      />
+                    </Box>
                   </Box>
-                  <Box className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1 border-2 border-background-50">
-                    <Icon as={Heart} size="xs" className="text-white w-3 h-3" />
-                  </Box>
+                  <VStack>
+                    <Text className="text-typography-900 dark:text-typography-0 font-bold text-lg">
+                      {partner.firstName}
+                    </Text>
+                    <Text className="text-typography-500 text-sm">
+                      {t("profile.connected")}
+                    </Text>
+                  </VStack>
+                </HStack>
+                <Icon as={LinkIcon} className="text-typography-400" />
+              </HStack>
+            </WidgetCard>
+          ) : (
+            <WidgetCard>
+              <VStack space="md" className="items-center py-2">
+                <Box className="w-14 h-14 bg-primary-50 dark:bg-primary-900/20 rounded-full items-center justify-center">
+                  <Icon as={Users} size="xl" className="text-primary-500" />
                 </Box>
-                <VStack>
-                  <Text className="text-typography-900 dark:text-typography-0 font-bold text-lg">
-                    {partner ? `${partner.firstName}` : t("profile.no_partner")}
+                <VStack space="xs" className="items-center">
+                  <Text className="text-typography-900 dark:text-typography-0 font-bold text-base text-center">
+                    {t("profile.sync_cta_title")}
+                  </Text>
+                  <Text className="text-typography-500 text-sm text-center px-2">
+                    {t("profile.sync_cta_description")}
                   </Text>
                 </VStack>
-              </HStack>
-              <Icon as={LinkIcon} className="text-typography-400" />
-            </HStack>
-          </WidgetCard>
+                <Button
+                  action="primary"
+                  className="w-full rounded-xl mt-1"
+                  onPress={() => router.push("/sync")}
+                >
+                  <ButtonIcon as={Heart} className="mr-2 text-white" />
+                  <ButtonText className="font-bold">
+                    {t("profile.sync_cta_button")}
+                  </ButtonText>
+                </Button>
+              </VStack>
+            </WidgetCard>
+          )}
 
           {/* Menu Actions */}
           <VStack space="md">

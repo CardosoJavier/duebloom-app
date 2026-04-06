@@ -4,9 +4,13 @@ import { SyncInput } from "@/components/auth/sync/SyncInput";
 import { SyncWaiting } from "@/components/auth/sync/SyncWaiting";
 import { VStack } from "@/components/ui/vstack";
 import { usePartnerSync } from "@/hooks/usePartnerSync";
-import React from "react";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
 
-export default function BloomScreen() {
+export default function SyncScreen() {
+  const router = useRouter();
+  const { partner } = useAuthStore();
   const {
     step,
     isLoading,
@@ -16,6 +20,13 @@ export default function BloomScreen() {
     connect,
     confirm,
   } = usePartnerSync();
+
+  // Guard: already synced — nothing to do here
+  useEffect(() => {
+    if (partner) {
+      router.replace("/(tabs)/profile");
+    }
+  }, [partner]);
 
   return (
     <AuthContainer>
