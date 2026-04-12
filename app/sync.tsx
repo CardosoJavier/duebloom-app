@@ -1,16 +1,28 @@
+import { userApi } from "@/api/user-api";
 import { AuthContainer } from "@/components/auth/AuthContainer";
 import { SyncFound } from "@/components/auth/sync/SyncFound";
 import { SyncInput } from "@/components/auth/sync/SyncInput";
 import { SyncWaiting } from "@/components/auth/sync/SyncWaiting";
 import { VStack } from "@/components/ui/vstack";
+import { QueryKeys } from "@/constants/query-keys";
 import { usePartnerSync } from "@/hooks/usePartnerSync";
 import { useAuthStore } from "@/store/authStore";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 
 export default function SyncScreen() {
   const router = useRouter();
-  const { partner } = useAuthStore();
+  const { user } = useAuthStore();
+  const { data: partner } = useQuery({
+    queryKey: QueryKeys.partner(user?.id ?? ""),
+    queryFn: async () => {
+      const result = await userApi.fetchPartner(user!.id);
+      return result.success ? (result.data ?? null) : null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+  });
   const {
     step,
     isLoading,

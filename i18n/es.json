@@ -19,10 +19,13 @@
     "delete": "Eliminar",
     "confirm": "Confirmar",
     "saving": "Guardando...",
+    "save": "Guardar",
     "info": "Información",
     "are_you_sure": "¿Estás seguro?",
     "cancel": "Cancelar",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "camera": "Cámara",
+    "gallery": "Galería"
   },
   "habits": {
     "strike_count": "¡Llevas una racha de {{count}} días!",
@@ -42,6 +45,10 @@
     "add_food_to": "Agregar alimento a {{meal}}",
     "search_placeholder": "Buscar alimento o escanear código...",
     "search_no_results": "Sin resultados",
+    "add_meal_title": "Agregar Comida",
+    "meal_name_placeholder": "p.ej., Tostadas con Aguacate",
+    "kcal_label": "Calorías (kcal)",
+    "save_entry": "Guardar Entrada",
     "tab_streak": "Racha",
     "no_meals_found_today": "No se han registrado comidas hoy.",
     "partner_no_meals": "{{name}} no ha registrado comidas hoy.",
@@ -134,6 +141,8 @@
     "edit_profile": "Editar Perfil",
     "app_settings": "Configuración",
     "save_changes": "Guardar Cambios",
+    "save_changes_success": "Perfil actualizado correctamente.",
+    "save_changes_error": "No se pudo actualizar el perfil.",
     "danger_zone": "Zona de Peligro",
     "delete_account": "Eliminar Cuenta",
     "email_update_warning": "Actualizar tu correo requerirá nueva verificación.",
@@ -229,7 +238,8 @@
     "side_view": "VISTA LATERAL",
     "back_view": "VISTA TRASERA",
     "no_photo_for_date": "No hay foto registrada para esta fecha.",
-    "partner_privacy_on": "{{name}} tiene el modo privado activado."
+    "partner_privacy_on": "{{name}} tiene el modo privado activado.",
+    "image_load_error": "No se pudo cargar la imagen."
   },
   "stats": {
     "title": "Estadísticas",

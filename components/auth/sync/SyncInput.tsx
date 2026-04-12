@@ -16,12 +16,7 @@ import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { useAppToast } from "@/hooks/use-app-toast";
-
-interface SyncInputProps {
-  myCode?: string;
-  onConnect: (code: string) => void;
-  isLoading: boolean;
-}
+import { SyncInputProps } from "@/types/auth";
 
 export const SyncInput = ({ myCode, onConnect, isLoading }: SyncInputProps) => {
   const { t } = useTranslation();

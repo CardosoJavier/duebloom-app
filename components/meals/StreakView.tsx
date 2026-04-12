@@ -2,6 +2,7 @@ import {
   getMonthlyMealCompletionDates,
   getStreakState,
 } from "@/api/streak-api";
+import { userApi } from "@/api/user-api";
 import { DateNavigator } from "@/components/DateNavigator";
 import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
@@ -9,12 +10,14 @@ import { Icon } from "@/components/ui/icon";
 import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { QueryKeys } from "@/constants/query-keys";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { getDaysInMonth, getMonthBounds, isSameMonth } from "@/services/date";
+import { resolveCurrentStreak } from "@/services/StreakService";
 import { useAuthStore } from "@/store/authStore";
 import {
   CurrentStreakData,
   MonthlyStreakData,
-  NutritionStreakState,
   StreakSubject,
 } from "@/types/streaks";
 import { useQuery } from "@tanstack/react-query";
@@ -25,58 +28,20 @@ import { ScrollView } from "react-native";
 import { NutritionStreakWidget } from "./NutritionStreakWidget";
 import { StreakWidgets } from "./StreakWidgets";
 
-const toDateKey = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-/**
- * Given the persisted last_streak_day and current_streak_count, returns the
- * effective current streak accounting for whether the streak has been broken
- * (last day is not today or yesterday).
- */
-const resolveCurrentStreak = (
-  state: NutritionStreakState | null | undefined,
-): number => {
-  if (!state?.last_streak_day) return 0;
-  const today = toDateKey(new Date());
-  const yesterday = toDateKey(
-    new Date(new Date().setDate(new Date().getDate() - 1)),
-  );
-  if (state.last_streak_day === today || state.last_streak_day === yesterday) {
-    return state.current_streak_count;
-  }
-  return 0; // streak was broken — last log is more than 1 day ago
-};
-
-const getMonthBounds = (date: Date) => {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    0,
-    23,
-    59,
-    59,
-    999,
-  );
-  return { start, end };
-};
-
-const getDaysInMonth = (date: Date): number => {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-};
-
-const isSameMonth = (a: Date, b: Date): boolean => {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
-};
-
 export function StreakView() {
   const { t } = useTranslation();
   const toast = useAppToast();
-  const { user, partner } = useAuthStore();
+  const { user } = useAuthStore();
+
+  const { data: partner } = useQuery({
+    queryKey: QueryKeys.partner(user?.id ?? ""),
+    queryFn: async () => {
+      const result = await userApi.fetchPartner(user!.id);
+      return result.success ? (result.data ?? null) : null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+  });
 
   const [selectedSubject, setSelectedSubject] = useState<StreakSubject>("self");
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -98,12 +63,11 @@ export function StreakView() {
   };
 
   const monthQuery = useQuery({
-    queryKey: [
-      "streak-month",
-      selectedUserId,
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-    ],
+    queryKey: QueryKeys.streakMonth(
+      selectedUserId ?? "",
+      String(selectedDate.getFullYear()),
+      String(selectedDate.getMonth()),
+    ),
     enabled: Boolean(selectedUserId),
     queryFn: async (): Promise<MonthlyStreakData> => {
       const { start, end } = getMonthBounds(selectedDate);
@@ -137,7 +101,7 @@ export function StreakView() {
   });
 
   const allTimeQuery = useQuery({
-    queryKey: ["streak-state", selectedUserId],
+    queryKey: QueryKeys.streakState(selectedUserId ?? ""),
     enabled: Boolean(selectedUserId),
     queryFn: async (): Promise<CurrentStreakData> => {
       const result = await getStreakState(selectedUserId as string);

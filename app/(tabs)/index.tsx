@@ -1,4 +1,5 @@
 import { progressApi } from "@/api/progress-api";
+import { userApi } from "@/api/user-api";
 import { HydrationWidget } from "@/components/today/HydrationWidget";
 import { MealsSummaryWidget } from "@/components/today/MealsSummaryWidget";
 import { NutritionStreakCard } from "@/components/today/NutritionStreakCard";
@@ -7,6 +8,7 @@ import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { QueryKeys } from "@/constants/query-keys";
 import { useAuthStore } from "@/store/authStore";
 import { UnitSystem } from "@/types/user";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +20,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TodayScreen() {
   const { t } = useTranslation();
-  const { user, partner } = useAuthStore();
+  const { user } = useAuthStore();
+
+  const { data: partner } = useQuery({
+    queryKey: QueryKeys.partner(user?.id ?? ""),
+    queryFn: async () => {
+      const result = await userApi.fetchPartner(user!.id);
+      return result.success ? (result.data ?? null) : null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+  });
   const queryClient = useQueryClient();
 
   const { data: settings } = useQuery({

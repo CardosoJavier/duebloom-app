@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Center } from "@/components/ui/center";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
+import { AuthContainerProps } from "@/types/auth";
 import { Heart } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -13,10 +14,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface AuthContainerProps {
-  children: React.ReactNode;
-}
 
 export function AuthContainer({ children }: AuthContainerProps) {
   const { t } = useTranslation();

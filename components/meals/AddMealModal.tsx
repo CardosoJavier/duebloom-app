@@ -1,3 +1,4 @@
+import { AddMealModalProps } from "@/types/meals";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, Image as ImageIcon, Utensils, X } from "lucide-react-native";
 import React, { useState } from "react";
@@ -22,12 +23,6 @@ import {
   ModalFooter,
   ModalHeader,
 } from "../ui/modal";
-
-interface AddMealModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (mealInfo: { name: string; calories: number; uri: string }) => void;
-}
 
 export function AddMealModal({
   isOpen,
@@ -104,7 +99,7 @@ export function AddMealModal({
           <HStack className="items-center gap-2">
             <Icon as={Utensils} size="md" className="text-primary-500" />
             <Heading size="md" className="text-typography-900 dark:text-white">
-              Add Meal
+              {t("meals.add_meal_title")}
             </Heading>
           </HStack>
           <ModalCloseButton onPress={onClose}>
@@ -116,12 +111,12 @@ export function AddMealModal({
           <FormControl>
             <FormControlLabel className="mb-1">
               <FormControlLabelText className="text-typography-700 dark:text-typography-300">
-                Meal Name
+                {t("meals.meal_name")}
               </FormControlLabelText>
             </FormControlLabel>
             <Input variant="outline" size="md">
               <InputField
-                placeholder="e.g., Avocado Toast"
+                placeholder={t("meals.meal_name_placeholder")}
                 value={name}
                 onChangeText={setName}
                 className="text-typography-900 dark:text-white"
@@ -132,7 +127,7 @@ export function AddMealModal({
           <FormControl className="flex-1">
             <FormControlLabel className="mb-1">
               <FormControlLabelText className="text-typography-700 dark:text-typography-300">
-                Calories (kcal)
+                {t("meals.kcal_label")}
               </FormControlLabelText>
             </FormControlLabel>
             <Input variant="outline" size="md">
@@ -157,7 +152,7 @@ export function AddMealModal({
                 className="mr-2 text-typography-700 dark:text-typography-300"
               />
               <ButtonText className="text-typography-700 dark:text-typography-300">
-                Camera
+                {t("common.camera")}
               </ButtonText>
             </Button>
 
@@ -171,7 +166,7 @@ export function AddMealModal({
                 className="mr-2 text-typography-700 dark:text-typography-300"
               />
               <ButtonText className="text-typography-700 dark:text-typography-300">
-                Gallery
+                {t("common.gallery")}
               </ButtonText>
             </Button>
           </HStack>
@@ -196,7 +191,7 @@ export function AddMealModal({
             className="w-full bg-primary-500 hover:bg-primary-600 rounded-xl py-3 h-12 flex-1 justify-center items-center"
           >
             <ButtonText className="text-white font-bold text-center">
-              Save Entry
+              {t("meals.save_entry")}
             </ButtonText>
           </Button>
         </ModalFooter>

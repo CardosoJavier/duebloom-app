@@ -1,15 +1,10 @@
 import { getMonthlyMealCompletionDates } from "@/api/streak-api";
 import { NutritionStreakWidget } from "@/components/meals/NutritionStreakWidget";
+import { QueryKeys } from "@/constants/query-keys";
+import { toDateKey } from "@/services/date";
 import { useAuthStore } from "@/store/authStore";
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo } from "react";
-
-const toDateKey = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 export function NutritionStreakCard() {
   const { user } = useAuthStore();
@@ -22,7 +17,7 @@ export function NutritionStreakCard() {
   const displayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const { data: completedDates = [] } = useQuery({
-    queryKey: ["streak-monthly", user?.id, fromDate, toDate],
+    queryKey: QueryKeys.streakMonth(user?.id ?? "", fromDate, toDate),
     queryFn: () =>
       getMonthlyMealCompletionDates(user!.id, fromDate, toDate).then(
         (r) => r.data ?? [],

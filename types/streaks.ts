@@ -31,3 +31,26 @@ export interface CurrentStreakData {
   days: number;
   allTimeDays: number;
 }
+
+// ── Calendar grid types ────────────────────────────────────────────────────────
+
+export type CalendarCellStatus = "completed" | "missed" | "future" | "today";
+
+export interface CalendarCell {
+  dateKey: string;
+  status: CalendarCellStatus;
+  dayNumber: number;
+}
+
+/** Internal grid layout cell used by CalendarGrid component. */
+export interface CalendarGridCell {
+  /** Unique react key for this cell. */
+  key: string;
+  /** Day-of-month number, or null for padding cells. */
+  day: number | null;
+}
+
+export interface CalendarGridProps {
+  readonly selectedDate: Date;
+  readonly completedSet: Set<string>;
+}

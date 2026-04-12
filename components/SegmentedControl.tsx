@@ -1,13 +1,7 @@
-import { useAppStore } from "@/store/appStore";
+import { useAppColorScheme } from "@/hooks/useAppColorScheme";
+import { SegmentedControlProps } from "@/types/components";
 import React from "react";
 import { Button, ButtonGroup, ButtonText } from "./ui/button";
-
-export interface SegmentedControlProps {
-  options: string[];
-  selectedValue: string;
-  onValueChange: (value: string) => void;
-  containerStyle?: any;
-}
 
 export const SegmentedControl: React.FC<SegmentedControlProps> = ({
   options,
@@ -15,7 +9,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
   onValueChange,
   containerStyle,
 }) => {
-  const { colorScheme } = useAppStore();
+  const colorScheme = useAppColorScheme();
 
   // Helper to safely extract className and styles
   const customClassName =
@@ -23,10 +17,10 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
       ? containerStyle
       : containerStyle?.className || "";
 
-  const customStyle =
-    typeof containerStyle === "object" && !containerStyle.className
-      ? containerStyle
-      : containerStyle?.style;
+  let customStyle: import("react-native").ViewStyle | undefined;
+  if (typeof containerStyle === "object") {
+    customStyle = containerStyle.style;
+  }
 
   const btnBg = colorScheme === "light" ? "bg-white shadow-sm" : "bg-[#334156]";
 

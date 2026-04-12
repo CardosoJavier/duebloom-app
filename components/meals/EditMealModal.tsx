@@ -1,10 +1,10 @@
+import { EditMealModalProps } from "@/types/meals";
 import { Trash2, Utensils, X } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 import { deleteConsumedMeal, updateConsumedMeal } from "../../api/meals-api";
 import { useAppToast } from "../../hooks/use-app-toast";
-import { ConsumedMeal } from "../../types/meals";
 import { Button, ButtonText } from "../ui/button";
 import {
   FormControl,
@@ -24,13 +24,6 @@ import {
   ModalFooter,
   ModalHeader,
 } from "../ui/modal";
-
-interface EditMealModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  meal: ConsumedMeal | null;
-  onSuccess: () => void;
-}
 
 export function EditMealModal({
   isOpen,

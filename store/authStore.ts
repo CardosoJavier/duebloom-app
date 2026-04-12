@@ -10,7 +10,6 @@ interface AuthState {
   needsEmailConfirmation: boolean;
   unconfirmedEmail: string | null;
   user: User | null;
-  partner: User | null;
   error: string | null;
   login: (
     email: string,
@@ -30,8 +29,6 @@ interface AuthState {
   refreshUser: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   clearError: () => void;
-  setPartner: (user: User) => void;
-  clearPartner: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -41,12 +38,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   needsEmailConfirmation: false,
   unconfirmedEmail: null,
   user: null,
-  partner: null,
   error: null,
-
-  setPartner: (user: User) => set({ partner: user }),
-
-  clearPartner: () => set({ partner: null }),
 
   clearError: () => set({ error: null }),
 
@@ -77,20 +69,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const result = await userApi.getSession();
 
       if (result.success && result.data?.user) {
-        // Fetch partner data
-        const partnerInfo = await userApi.fetchPartner(result.data.user.id);
-
         set({
           isAuthenticated: true,
           user: result.data.user,
-          partner: partnerInfo.success ? partnerInfo.data : null,
           needsEmailConfirmation: false,
         });
       } else {
         set({
           isAuthenticated: false,
           user: null,
-          partner: null,
           needsEmailConfirmation: false,
         });
       }
@@ -155,15 +142,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error: "Unexpected error",
       });
       return { success: false, error: "Unexpected error" };
-    }
-
-    // Fetch partner data
-    const partnerInfo = await userApi.fetchPartner(completeUser.data.id);
-
-    if (partnerInfo.success && partnerInfo.data) {
-      set({
-        partner: partnerInfo.data,
-      });
     }
 
     set({
@@ -289,7 +267,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user: null,
       isLoading: false,
       needsEmailConfirmation: false,
-      partner: null,
     });
   },
 }));

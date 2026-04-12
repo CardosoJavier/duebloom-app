@@ -1,7 +1,8 @@
-import { useAppStore } from "@/store/appStore";
+import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 import {
   DailyNutritionGoal,
   FoodItem,
+  FoodSearchResult,
   MealSection,
   MealType,
 } from "@/types/food-log";
@@ -306,10 +307,10 @@ function MealSectionCard({
 
 export function MealsView() {
   const { t } = useTranslation();
-  const { colorScheme } = useAppStore();
+  const colorScheme = useAppColorScheme();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [sections] = useState<MealSection[]>(MOCK_SECTIONS);
+  const [sections, setSections] = useState<MealSection[]>(MOCK_SECTIONS);
   const [goal] = useState<DailyNutritionGoal>(MOCK_GOAL);
   const [activeMealType, setActiveMealType] = useState<MealType | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<MealType>>(
@@ -336,6 +337,26 @@ export function MealsView() {
       return next;
     });
   }, []);
+
+  const handleFoodSelected = useCallback(
+    (result: FoodSearchResult, mealType: MealType) => {
+      const newItem: FoodItem = {
+        id: `${result.id}-${Date.now()}`,
+        name: result.name,
+        kcal: result.kcalPer100g,
+        protein: result.proteinPer100g,
+        carbs: result.carbsPer100g,
+        fat: result.fatPer100g,
+      };
+      setSections((prev) =>
+        prev.map((s) =>
+          s.type === mealType ? { ...s, items: [...s.items, newItem] } : s,
+        ),
+      );
+      setActiveMealType(null);
+    },
+    [],
+  );
 
   return (
     <Box className="flex-1 bg-background-0">
@@ -377,9 +398,7 @@ export function MealsView() {
         isOpen={activeMealType !== null}
         mealType={activeMealType}
         onClose={() => setActiveMealType(null)}
-        onSelectFood={(_item, _type) => {
-          setActiveMealType(null);
-        }}
+        onSelectFood={handleFoodSelected}
       />
     </Box>
   );

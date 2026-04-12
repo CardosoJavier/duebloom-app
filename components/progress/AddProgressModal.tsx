@@ -26,20 +26,8 @@ import {
 import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { ProgressPhotoInput } from "@/types/progress";
-import { UnitSystem } from "@/types/user";
-import { kgToLbs, lbsToKg } from "@/util/weight";
-
-type PhotoView = "front" | "side" | "back";
-
-interface AddProgressModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (input: ProgressPhotoInput) => Promise<void>;
-  capturedDate: string;
-  isSaving: boolean;
-  unitSystem: UnitSystem;
-}
+import { kgToLbs, lbsToKg } from "@/services/weight";
+import { AddProgressModalProps, PhotoView } from "@/types/progress";
 
 export function AddProgressModal({
   isOpen,

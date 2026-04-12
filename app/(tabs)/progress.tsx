@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { progressApi } from "@/api/progress-api";
 import { statsApi } from "@/api/stats-api";
+import { userApi } from "@/api/user-api";
 import { DateNavigator } from "@/components/DateNavigator";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { AddProgressModal } from "@/components/progress/AddProgressModal";
@@ -22,6 +23,7 @@ import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
+import { QueryKeys } from "@/constants/query-keys";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useAppStore } from "@/store/appStore";
 import { useAuthStore } from "@/store/authStore";
@@ -29,10 +31,19 @@ import { ProgressPhotoInput, ProgressStatInput } from "@/types/progress";
 
 export default function ProgressScreen() {
   const { t } = useTranslation();
-  const { user, partner } = useAuthStore();
+  const { user } = useAuthStore();
   const { colorScheme } = useAppStore();
   const queryClient = useQueryClient();
   const toast = useAppToast();
+  const { data: partner } = useQuery({
+    queryKey: QueryKeys.partner(user?.id ?? ""),
+    queryFn: async () => {
+      const result = await userApi.fetchPartner(user!.id);
+      return result.success ? (result.data ?? null) : null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+  });
 
   const tabPhotos = t("progress.tab_photos");
   const tabStats = t("progress.tab_stats");

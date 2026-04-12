@@ -25,17 +25,9 @@ import {
 import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 
+import { DateNavigatorProps } from "@/types/components";
 import React, { useState } from "react";
 import { View } from "react-native";
-
-export interface DateNavigatorProps {
-  date: Date;
-  onDateChange: (newDate: Date) => void;
-  className?: string;
-  mode?: "day" | "month";
-  disableNext?: boolean;
-  textSize?: "xs" | "sm" | "base" | "xl";
-}
 
 // Simple helper to check if a date is "Today"
 const isSameDay = (d1: Date, d2: Date) => {

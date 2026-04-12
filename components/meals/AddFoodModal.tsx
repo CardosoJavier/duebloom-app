@@ -1,4 +1,5 @@
-import { FoodSearchResult, MealType } from "@/types/food-log";
+import { FoodSearchResult } from "@/types/food-log";
+import { AddFoodModalProps } from "@/types/meals";
 import { Search, X } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -173,13 +174,6 @@ function ResultRow({ item, isLast, onPress }: ResultRowProps) {
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
-
-export interface AddFoodModalProps {
-  readonly isOpen: boolean;
-  readonly mealType: MealType | null;
-  readonly onClose: () => void;
-  readonly onSelectFood: (item: FoodSearchResult, mealType: MealType) => void;
-}
 
 export function AddFoodModal({
   isOpen,

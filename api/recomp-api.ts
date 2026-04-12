@@ -5,7 +5,7 @@ import {
   BodyRecompPlanInput,
   DayOfWeek,
 } from "@/types/macros";
-import { supabase } from "@/util/supabase";
+import { supabase } from "@/services/supabase";
 
 function mapRow(row: Record<string, unknown>): BodyRecompPlan {
   return {

@@ -3,6 +3,7 @@ import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
+import { WeightTrendWidgetProps } from "@/types/components";
 import { StatsSummary } from "@/types/progress";
 import { UnitSystem } from "@/types/user";
 import { useQuery } from "@tanstack/react-query";
@@ -11,13 +12,6 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
-
-interface WeightTrendWidgetProps {
-  readonly userId: string;
-  readonly label: string;
-  readonly unitSystem?: UnitSystem;
-  readonly chartColor?: string;
-}
 
 function formatWeight(value: number | null, unit: UnitSystem): string {
   if (value === null) return "—";

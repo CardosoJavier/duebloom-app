@@ -1,5 +1,7 @@
+import { supabase } from "@/services/supabase";
+import { ApiResult } from "@/types/api";
+import { ErrorCode } from "@/types/error";
 import { ConsumedMeal } from "@/types/meals";
-import { supabase } from "@/util/supabase";
 
 /**
  * Fetches consumed meals for the logged-in user and their partner.
@@ -9,7 +11,7 @@ import { supabase } from "@/util/supabase";
 export const getConsumedMeals = async (
   fromDate: string,
   toDate: string,
-): Promise<{ success: boolean; data?: ConsumedMeal[]; error?: any }> => {
+): Promise<ApiResult<ConsumedMeal[]>> => {
   console.log(
     `[meals-api] Fetching consumed meals from ${fromDate} to ${toDate}`,
   );
@@ -21,11 +23,18 @@ export const getConsumedMeals = async (
 
   if (error) {
     console.error(`[meals-api] Error fetching consumed meals:`, error);
-    return { success: false, error };
+    return {
+      success: false,
+      error: {
+        code: ErrorCode.UNKNOWN_ERROR,
+        message: error.message,
+        originalError: error,
+      },
+    };
   }
 
   console.log(`[meals-api] Fetched ${data?.length || 0} meals successfully.`);
-  return { success: true, data };
+  return { success: true, data: data ?? [] };
 };
 
 /**
@@ -36,7 +45,7 @@ export const addConsumedMeal = async (
   meal: Omit<ConsumedMeal, "id" | "created_at" | "updated_at" | "user_id"> & {
     user_id: string;
   },
-): Promise<{ success: boolean; data?: ConsumedMeal; error?: any }> => {
+): Promise<ApiResult<ConsumedMeal>> => {
   console.log(`[meals-api] Adding consumed meal:`, meal);
   const { data, error } = await supabase
     .from("consumed_meals")
@@ -46,7 +55,14 @@ export const addConsumedMeal = async (
 
   if (error) {
     console.error(`[meals-api] Error adding consumed meal:`, error);
-    return { success: false, error };
+    return {
+      success: false,
+      error: {
+        code: ErrorCode.UNKNOWN_ERROR,
+        message: error.message,
+        originalError: error,
+      },
+    };
   }
 
   console.log(`[meals-api] Successfully added meal with ID:`, data.id);
@@ -63,7 +79,7 @@ export const updateConsumedMeal = async (
   updatedFields: Partial<
     Omit<ConsumedMeal, "id" | "created_at" | "updated_at" | "user_id">
   >,
-): Promise<{ success: boolean; data?: ConsumedMeal; error?: any }> => {
+): Promise<ApiResult<ConsumedMeal>> => {
   console.log(
     `[meals-api] Updating consumed meal ${mealId} with:`,
     updatedFields,
@@ -77,7 +93,14 @@ export const updateConsumedMeal = async (
 
   if (error) {
     console.error(`[meals-api] Error updating consumed meal:`, error);
-    return { success: false, error };
+    return {
+      success: false,
+      error: {
+        code: ErrorCode.UNKNOWN_ERROR,
+        message: error.message,
+        originalError: error,
+      },
+    };
   }
 
   console.log(`[meals-api] Successfully updated meal ${mealId}.`);
@@ -88,10 +111,9 @@ export const updateConsumedMeal = async (
  * Deletes a consumed meal for the logged-in user.
  * @param mealId - The ID of the meal to delete.
  */
-// api/meals-api.ts
 export const deleteConsumedMeal = async (
   mealId: string,
-): Promise<{ success: boolean; error?: any }> => {
+): Promise<ApiResult<null>> => {
   console.log(`[meals-api] Delete flow started for meal: ${mealId}`);
 
   // 1) Read canonical photo path from DB first
@@ -106,7 +128,14 @@ export const deleteConsumedMeal = async (
       `[meals-api] Delete flow failed while fetching meal ${mealId}:`,
       fetchError,
     );
-    return { success: false, error: fetchError ?? new Error("Meal not found") };
+    return {
+      success: false,
+      error: {
+        code: ErrorCode.UNKNOWN_ERROR,
+        message: fetchError?.message ?? "Meal not found",
+        originalError: fetchError,
+      },
+    };
   }
 
   console.log(
@@ -131,7 +160,14 @@ export const deleteConsumedMeal = async (
           `[meals-api] Storage delete failed for meal ${mealId}. Aborting DB delete:`,
           storageDeleteError,
         );
-        return { success: false, error: storageDeleteError };
+        return {
+          success: false,
+          error: {
+            code: ErrorCode.UNKNOWN_ERROR,
+            message: storageDeleteError.message,
+            originalError: storageDeleteError,
+          },
+        };
       }
 
       console.log(
@@ -160,11 +196,18 @@ export const deleteConsumedMeal = async (
       `[meals-api] DB row delete failed for meal ${mealId}:`,
       rowDeleteError,
     );
-    return { success: false, error: rowDeleteError };
+    return {
+      success: false,
+      error: {
+        code: ErrorCode.UNKNOWN_ERROR,
+        message: rowDeleteError.message,
+        originalError: rowDeleteError,
+      },
+    };
   }
 
   console.log(
     `[meals-api] Delete flow completed successfully for meal ${mealId}.`,
   );
-  return { success: true };
+  return { success: true, data: null };
 };

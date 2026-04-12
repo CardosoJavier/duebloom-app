@@ -87,3 +87,14 @@ export interface BodyRecompPlanInput {
   restFatGrams: number;
   trainingDays: DayOfWeek[];
 }
+
+// ── UI-specific types for MacroCalculatorView ──────────────────────────────────
+
+/**
+ * Input unit system for the macro calculator form.
+ * Distinct from UnitSystem in user.ts ("KG" | "LB") which is the
+ * user's preferred display system stored in the DB.
+ */
+export type WeightInputUnit = "metric" | "imperial";
+
+export type MacroKey = "protein" | "carbs" | "fat";

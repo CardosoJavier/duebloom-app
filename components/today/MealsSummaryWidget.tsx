@@ -1,29 +1,20 @@
 import { getConsumedMeals } from "@/api/meals-api";
+import { userApi } from "@/api/user-api";
 import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
+import { QueryKeys } from "@/constants/query-keys";
+import { toLocalDateString } from "@/services/date";
 import { useAuthStore } from "@/store/authStore";
-import { ConsumedMeal } from "@/types/meals";
+import { ConsumedMeal, MealBarsProps, PersonRowProps } from "@/types/meals";
 import { useQuery } from "@tanstack/react-query";
 import { Utensils } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-const toLocalDateString = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
 const MAX_BARS = 3;
-
-interface MealBarsProps {
-  readonly count: number;
-  readonly color: string;
-}
 
 function MealBars({ count, color }: MealBarsProps) {
   return (
@@ -41,14 +32,6 @@ function MealBars({ count, color }: MealBarsProps) {
       ))}
     </HStack>
   );
-}
-
-interface PersonRowProps {
-  readonly name: string;
-  readonly initial: string;
-  readonly mealCount: number;
-  readonly avatarColor: string;
-  readonly barColor: string;
 }
 
 function PersonRow({
@@ -80,13 +63,23 @@ function PersonRow({
 
 export function MealsSummaryWidget() {
   const { t } = useTranslation();
-  const { user, partner } = useAuthStore();
+  const { user } = useAuthStore();
+
+  const { data: partner } = useQuery({
+    queryKey: QueryKeys.partner(user?.id ?? ""),
+    queryFn: async () => {
+      const result = await userApi.fetchPartner(user!.id);
+      return result.success ? (result.data ?? null) : null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+  });
 
   const today = new Date();
   const todayStr = toLocalDateString(today);
 
   const { data: meals = [] } = useQuery<ConsumedMeal[]>({
-    queryKey: ["today-meals", user?.id, todayStr],
+    queryKey: QueryKeys.mealsToday(user?.id ?? "", todayStr),
     queryFn: async () => {
       const startOfDay = new Date(today);
       startOfDay.setHours(0, 0, 0, 0);

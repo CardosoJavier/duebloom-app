@@ -18,6 +18,7 @@ import { ProgressPhoto } from "@/types/progress";
 // ── Single photo card ─────────────────────────────────────────────────────────
 
 const PhotoCard: React.FC<{ storagePath: string }> = ({ storagePath }) => {
+  const { t } = useTranslation();
   const { signedUrl, isLoading } = useSignedUrl(storagePath, "user_media");
 
   if (isLoading) {
@@ -31,7 +32,9 @@ const PhotoCard: React.FC<{ storagePath: string }> = ({ storagePath }) => {
   if (!signedUrl) {
     return (
       <Box className="w-full aspect-[3/4] rounded-2xl bg-background-100 items-center justify-center">
-        <Text className="text-error-500 text-sm">Failed to load image</Text>
+        <Text className="text-error-500 text-sm">
+          {t("progress.image_load_error")}
+        </Text>
       </Box>
     );
   }

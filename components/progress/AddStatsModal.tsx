@@ -43,20 +43,8 @@ import {
 import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { ProgressStatInput } from "@/types/progress";
-import { UnitSystem } from "@/types/user";
-import { kgToLbs, lbsToKg } from "@/util/weight";
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-export interface AddStatsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (input: ProgressStatInput) => Promise<void>;
-  isSaving: boolean;
-  defaultDate?: string; // 'YYYY-MM-DD', defaults to today
-  unitSystem: UnitSystem;
-}
+import { kgToLbs, lbsToKg } from "@/services/weight";
+import { AddStatsModalProps, ProgressStatInput } from "@/types/progress";
 
 // ── Component ──────────────────────────────────────────────────────────────────
 

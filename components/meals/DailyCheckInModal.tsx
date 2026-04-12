@@ -16,31 +16,13 @@ import {
 import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { QueryKeys } from "@/constants/query-keys";
+import { getYesterdayKey } from "@/services/date";
+import { DailyCheckInModalProps } from "@/types/meals";
 import { useQueryClient } from "@tanstack/react-query";
 import { Leaf, ThumbsDown, ThumbsUp, X } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-
-interface DailyCheckInModalProps {
-  readonly isOpen: boolean;
-  readonly userId: string;
-  readonly onClose: () => void;
-  /** Called when the user makes an explicit choice (Yes or No). NOT called on X-close. */
-  readonly onAnswered: () => void;
-}
-
-const toLocalDateString = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-const getYesterdayKey = (): string => {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  return toLocalDateString(yesterday);
-};
 
 export function DailyCheckInModal({
   isOpen,
@@ -63,8 +45,12 @@ export function DailyCheckInModal({
       await updateStreakState(userId, yesterday);
       await updateLastCheckInDate(userId, yesterday);
 
-      queryClient.invalidateQueries({ queryKey: ["streak-month"] });
-      queryClient.invalidateQueries({ queryKey: ["streak-state", userId] });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.streakMonth(userId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.streakState(userId),
+      });
     } catch (err) {
       console.warn("[DailyCheckInModal] Streak update failed:", err);
     } finally {

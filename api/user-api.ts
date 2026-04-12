@@ -1,10 +1,10 @@
+import { supabase } from "@/services/supabase";
 import { ApiResult } from "@/types/api";
 import { AuthResponse } from "@/types/auth";
 import { LoginData, SignupData } from "@/types/auth-schema";
 import { AppError, ErrorCode } from "@/types/error";
 import { Relationship } from "@/types/sync";
 import { User } from "@/types/user";
-import { supabase } from "@/util/supabase";
 import { syncApi } from "./sync-api";
 
 // Helper to map Supabase Auth User to our User type
@@ -451,6 +451,80 @@ export const userApi = {
       console.log(
         `fetchPartner API error: ${error.message || "Unknown error"}`,
       );
+      return {
+        success: false,
+        error: {
+          code: ErrorCode.UNKNOWN_ERROR,
+          message: error.message || "Unknown error",
+          originalError: error,
+        },
+      };
+    }
+  },
+
+  /**
+   * Updates the user's profile (first name, last name) in public.users.
+   * If email has changed, also updates Supabase Auth (triggers confirmation email).
+   */
+  updateProfile: async (
+    userId: string,
+    updates: { firstName?: string; lastName?: string; email?: string },
+  ): Promise<ApiResult<User>> => {
+    try {
+      const dbUpdates: Record<string, string> = {};
+      if (updates.firstName !== undefined)
+        dbUpdates.first_name = updates.firstName;
+      if (updates.lastName !== undefined)
+        dbUpdates.last_name = updates.lastName;
+
+      if (Object.keys(dbUpdates).length > 0) {
+        const { error: dbError } = await supabase
+          .from("users")
+          .update(dbUpdates)
+          .eq("id", userId);
+
+        if (dbError) {
+          return {
+            success: false,
+            error: {
+              code: ErrorCode.UNKNOWN_ERROR,
+              message: dbError.message,
+              originalError: dbError,
+            },
+          };
+        }
+      }
+
+      if (updates.email) {
+        const { error: authError } = await supabase.auth.updateUser({
+          email: updates.email,
+        });
+
+        if (authError) {
+          return {
+            success: false,
+            error: {
+              code: ErrorCode.UNKNOWN_ERROR,
+              message: authError.message,
+              originalError: authError,
+            },
+          };
+        }
+      }
+
+      const profileResult = await userApi.getUserProfile(userId);
+      if (!profileResult.success || !profileResult.data) {
+        return {
+          success: false,
+          error: profileResult.error ?? {
+            code: ErrorCode.UNKNOWN_ERROR,
+            message: "Failed to fetch updated profile",
+          },
+        };
+      }
+
+      return { success: true, data: profileResult.data };
+    } catch (error: any) {
       return {
         success: false,
         error: {

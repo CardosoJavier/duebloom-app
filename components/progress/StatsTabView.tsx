@@ -23,80 +23,23 @@ import {
   HealthSyncService,
   HealthWeightEntry,
 } from "@/services/HealthSyncService";
-import { ProgressStat, StatsHistoryPage } from "@/types/progress";
-import { UnitSystem } from "@/types/user";
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-export interface StatsTabViewProps {
-  myId: string;
-  myFirstName: string;
-  partnerId?: string;
-  partnerFirstName?: string;
-  partnerPrivacyOn: boolean;
-  unitSystem: UnitSystem;
-}
-
-type ComparisonTarget = "mine" | "partner";
-type StatMetric = "weight" | "fat";
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatStatValue(
-  stat: ProgressStat,
-  metric: StatMetric,
-  unitSystem: UnitSystem,
-): string {
-  if (metric === "fat") {
-    return stat.bodyFat === null ? "—" : `${stat.bodyFat.toFixed(1)}%`;
-  }
-  if (unitSystem === "LB") {
-    return stat.weightLb === null ? "—" : `${stat.weightLb.toFixed(1)} lb`;
-  }
-  return stat.weightKg === null ? "—" : `${stat.weightKg.toFixed(1)} kg`;
-}
-
-const formatDelta = (
-  delta: number | null,
-  metric: StatMetric,
-  unitSystem: UnitSystem,
-): string => {
-  if (delta === null) return "";
-  const sign = delta >= 0 ? "+" : "";
-  if (metric === "fat") return `${sign}${delta.toFixed(1)}%`;
-  const unit = unitSystem === "LB" ? "lb" : "kg";
-  return `${sign}${delta.toFixed(1)} ${unit}`;
-};
-
-function formatCurrentValue(
-  value: number | null,
-  metric: StatMetric,
-  unitSystem: UnitSystem,
-): string {
-  if (value === null) return "—";
-  if (metric === "fat") return `${value.toFixed(1)}%`;
-  return `${value.toFixed(1)} ${unitSystem === "LB" ? "lb" : "kg"}`;
-}
-
-function formatTrend(trendPercent: number | null): string {
-  if (trendPercent === null) return "—";
-  const sign = trendPercent >= 0 ? "+" : "";
-  return `${sign}${trendPercent.toFixed(1)}%`;
-}
-
-function trendColorClass(trendPercent: number | null): string {
-  if (trendPercent === null) return "text-typography-900 dark:text-white";
-  return trendPercent <= 0 ? "text-success-400" : "text-error-500";
-}
+import {
+  formatCurrentValue,
+  formatDelta,
+  formatStatValue,
+  formatTrend,
+  trendColorClass,
+} from "@/services/stats";
+import {
+  ComparisonTarget,
+  ProgressStat,
+  StatMetric,
+  StatsHistoryPage,
+  StatsTabViewProps,
+  TargetSelectorProps,
+} from "@/types/progress";
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-
-interface TargetSelectorProps {
-  target: ComparisonTarget;
-  partnerFirstName?: string;
-  onToggle: () => void;
-  t: (key: string, opts?: Record<string, string>) => string;
-}
 
 function TargetSelector({
   target,

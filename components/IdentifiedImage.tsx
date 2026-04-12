@@ -1,4 +1,5 @@
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { IdentifiedImageProps } from "@/types/components";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -6,20 +7,6 @@ import { Avatar, AvatarFallbackText, AvatarImage } from "./ui/avatar";
 import { Image } from "./ui/image";
 import { Text } from "./ui/text";
 import { VStack } from "./ui/vstack";
-
-export interface IdentifiedImageProps {
-  /**
-   * Storage path (e.g. "meals/userId/uuid.jpg") OR a full http(s) URL.
-   * When a storage path is provided the component resolves and caches the
-   * signed URL automatically; the path is also used as the expo-image
-   * cacheKey so pixel data is reused across URL rotations.
-   */
-  readonly uri: string;
-  readonly avatarUri?: string;
-  readonly title?: string;
-  readonly subtitle?: string;
-  readonly isBlurred?: boolean;
-}
 
 export function IdentifiedImage({
   uri,

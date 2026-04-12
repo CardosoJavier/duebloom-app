@@ -4,7 +4,7 @@ import { ApiResult } from "@/types/api";
 import { ErrorCode } from "@/types/error";
 import { ProgressPhoto, ProgressPhotoInput } from "@/types/progress";
 import { UnitSystem, UserSettings } from "@/types/user";
-import { supabase } from "@/util/supabase";
+import { supabase } from "@/services/supabase";
 
 const BUCKET = "user_media";
 

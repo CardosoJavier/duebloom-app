@@ -11,8 +11,9 @@ import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
 import { useAccountDeletion } from "@/hooks/useAccountDeletion";
 import { useAuthStore } from "@/store/authStore";
+import { EditProfileModalProps } from "@/types/profile";
 import { AlertTriangle, Camera, Mail, User, X } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -21,11 +22,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-interface EditProfileModalProps {
-  readonly isOpen: boolean;
-  readonly onClose: () => void;
-}
 
 export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
   const { user, refreshUser } = useAuthStore();

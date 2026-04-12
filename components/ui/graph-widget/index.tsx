@@ -2,7 +2,7 @@ import React from "react";
 import { ActivityIndicator } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 
-import { useAppStore } from "@/store/appStore";
+import { useAppColorScheme } from "@/hooks/useAppColorScheme";
 
 import { Box } from "../box";
 import { EmptyState } from "../empty-state";
@@ -55,7 +55,7 @@ export function GraphWidget({
   subtitle,
   className,
 }: GraphWidgetProps) {
-  const { colorScheme } = useAppStore();
+  const colorScheme = useAppColorScheme();
 
   const chartColor = colorScheme === "light" ? "#6366f1" : "#818cf8";
   const chartBg = colorScheme === "light" ? "#ffffff" : "#1e2d3d";

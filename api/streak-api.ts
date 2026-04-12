@@ -1,25 +1,7 @@
+import { computeNewStreak } from "@/services/StreakService";
+import { toLocalDateString } from "@/services/date";
+import { supabase } from "@/services/supabase";
 import { NutritionStreakState } from "@/types/streaks";
-import { supabase } from "@/util/supabase";
-
-const toLocalDateString = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-/** Converts a YYYY-MM-DD string to a Date at midnight local time (avoids UTC off-by-one). */
-const parseDateKey = (dateKey: string): Date => {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  return new Date(year, month - 1, day);
-};
-
-const daysBetween = (a: Date, b: Date): number => {
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const aDay = new Date(a.getFullYear(), a.getMonth(), a.getDate());
-  const bDay = new Date(b.getFullYear(), b.getMonth(), b.getDate());
-  return Math.round((bDay.getTime() - aDay.getTime()) / msPerDay);
-};
 
 // ─── Monthly calendar data (nutrition_logs) ────────────────────────────────
 
@@ -117,16 +99,10 @@ export const logNutritionDay = async (
 // ─── Streak state update (client-side logic) ───────────────────────────────
 
 /**
+/**
  * Updates the streak state for a user after a meal log.
  * Call this immediately after logNutritionDay.
- *
- * Rules:
- *  - No existing row → create with current=1, all_time=1
- *  - Same day as last_streak_day → no-op
- *  - newLogDate < last_streak_day (retroactive) → delegate to DB recalculation
- *  - newLogDate = last_streak_day + 1 day (consecutive) → increment current
- *  - newLogDate > last_streak_day + 1 day (gap) → reset current to 1
- *  - all_time is updated if current > all_time
+ * Streak calculation logic is delegated to StreakService.computeNewStreak.
  */
 export const updateStreakState = async (
   userId: string,
@@ -141,15 +117,29 @@ export const updateStreakState = async (
     return { success: false, error: stateResult.error };
   }
 
-  const existing = stateResult.data;
-  const newDate = parseDateKey(newLogDate);
+  const { isRetroactive, isSameDay, newCurrent, newAllTime } = computeNewStreak(
+    stateResult.data ?? null,
+    newLogDate,
+  );
 
-  // ── No existing row ────────────────────────────────────────────────────
-  if (!existing) {
+  if (isSameDay) {
+    console.log("[streak-api] Same day log — streak state unchanged.");
+    return { success: true };
+  }
+
+  if (isRetroactive) {
+    console.log(
+      "[streak-api] Retroactive log detected — triggering full recalculation.",
+    );
+    return recalculateStreak(userId);
+  }
+
+  if (!stateResult.data) {
+    // No existing row — insert
     const { error } = await supabase.from("nutrition_streaks").insert({
       user_id: userId,
-      current_streak_count: 1,
-      all_time_streak_count: 1,
+      current_streak_count: newCurrent,
+      all_time_streak_count: newAllTime,
       last_streak_day: newLogDate,
       last_check_in_date: newLogDate,
     });
@@ -160,38 +150,6 @@ export const updateStreakState = async (
     console.log("[streak-api] Streak state created (first log).");
     return { success: true };
   }
-
-  // ── Same day — already counted ─────────────────────────────────────────
-  if (existing.last_streak_day === newLogDate) {
-    console.log("[streak-api] Same day log — streak state unchanged.");
-    return { success: true };
-  }
-
-  // ── Retroactive log — recalculate from scratch via DB function ─────────
-  if (existing.last_streak_day && newLogDate < existing.last_streak_day) {
-    console.log(
-      "[streak-api] Retroactive log detected — triggering full recalculation.",
-    );
-    return recalculateStreak(userId);
-  }
-
-  // ── Forward log — apply consecutive / gap logic ────────────────────────
-  const lastDate = existing.last_streak_day
-    ? parseDateKey(existing.last_streak_day)
-    : null;
-
-  const diff = lastDate ? daysBetween(lastDate, newDate) : null;
-  let newCurrent: number;
-
-  if (diff === 1) {
-    // Consecutive day
-    newCurrent = existing.current_streak_count + 1;
-  } else {
-    // Gap (diff > 1 or no previous date after the no-existing-row guard above)
-    newCurrent = 1;
-  }
-
-  const newAllTime = Math.max(existing.all_time_streak_count, newCurrent);
 
   const { error } = await supabase
     .from("nutrition_streaks")

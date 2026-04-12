@@ -1,25 +1,7 @@
 import { getStreakState } from "@/api/streak-api";
+import { getTodayKey, getYesterdayKey } from "@/services/date";
+import { UseDailyCheckInResult } from "@/types/hooks";
 import { useEffect, useState } from "react";
-
-const toLocalDateString = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-const getTodayKey = (): string => toLocalDateString(new Date());
-
-const getYesterdayKey = (): string => {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return toLocalDateString(d);
-};
-
-interface UseDailyCheckInResult {
-  shouldShow: boolean;
-  markShown: () => void;
-}
 
 /**
  * Returns whether the daily nutrition check-in modal should be shown.

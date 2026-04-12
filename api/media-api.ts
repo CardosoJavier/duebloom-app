@@ -1,5 +1,5 @@
 import { SignedUrlResult } from "@/types/media";
-import { supabase } from "@/util/supabase";
+import { supabase } from "@/services/supabase";
 
 const DEFAULT_TTL = 3600; // 1 hour
 

@@ -30,20 +30,11 @@ import { ChevronLeftIcon, ChevronRightIcon, Icon } from "@/components/ui/icon";
 import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-export interface ComparisonViewProps {
-  myId: string;
-  myFirstName: string;
-  partnerId?: string;
-  partnerFirstName?: string;
-  partnerPrivacyOn: boolean;
-  colorScheme: "light" | "dark";
-}
-
-type ComparisonTarget = "mine" | "partner";
-type DatePickerSlot = "before" | "after";
+import {
+  ComparisonTarget,
+  ComparisonViewProps,
+  DatePickerSlot,
+} from "@/types/progress";
 
 // ── Date picker button ─────────────────────────────────────────────────────────
 

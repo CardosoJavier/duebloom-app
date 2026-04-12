@@ -1,14 +1,10 @@
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { WidgetCard } from "@/components/ui/widget-card";
+import { StreakWidgetsProps } from "@/types/meals";
 import { Flame, Target } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
-
-interface StreakWidgetsProps {
-  readonly currentStreakDays: number;
-  readonly completionPercent: number;
-}
 
 export function StreakWidgets({
   currentStreakDays,

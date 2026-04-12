@@ -1,7 +1,7 @@
 import { ApiResult } from "@/types/api";
 import { ErrorCode } from "@/types/error";
 import { Relationship, SyncRequest, SyncResult } from "@/types/sync";
-import { supabase } from "@/util/supabase";
+import { supabase } from "@/services/supabase";
 
 export const syncApi = {
   /**

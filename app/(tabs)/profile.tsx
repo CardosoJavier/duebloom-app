@@ -1,6 +1,6 @@
 import { userApi } from "@/api/user-api";
-import { EditProfileModal } from "@/components/profile/edit";
-import { AppSettingsModal } from "@/components/profile/settings";
+import { AppSettingsModal } from "@/components/profile/AppSettingsModal";
+import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { Box } from "@/components/ui/box";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
@@ -9,7 +9,9 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
+import { QueryKeys } from "@/constants/query-keys";
 import { useAuthStore } from "@/store/authStore";
+import { useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import {
@@ -20,39 +22,27 @@ import {
   User,
   Users,
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileScreen() {
-  const { user, logout, partner, setPartner } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const { t } = useTranslation();
   const router = useRouter();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  useEffect(() => {
-    const refetchPartner = async () => {
-      if (!partner) {
-        console.warn("Fetching missing partner info");
-
-        const partnerInfo = await userApi.fetchPartner(user?.id ?? "");
-
-        if (partnerInfo.success && partnerInfo.data) {
-          console.log(
-            "Success fetching partner info: ",
-            partnerInfo.data.firstName,
-          );
-          setPartner(partnerInfo.data);
-        } else {
-          console.log("Error fetching partner info: ", partnerInfo.error);
-        }
-      }
-    };
-
-    refetchPartner();
-  }, [user?.id, partner]);
+  const { data: partner } = useQuery({
+    queryKey: QueryKeys.partner(user?.id ?? ""),
+    queryFn: async () => {
+      const result = await userApi.fetchPartner(user!.id);
+      return result.success ? (result.data ?? null) : null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const copyToClipboard = async () => {
     if (user?.pairCode) {

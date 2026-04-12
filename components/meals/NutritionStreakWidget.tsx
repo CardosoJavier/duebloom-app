@@ -3,18 +3,10 @@ import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
+import { NutritionStreakWidgetProps } from "@/types/meals";
 import { CalendarDays } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ViewStyle } from "react-native";
-
-interface NutritionStreakWidgetProps {
-  readonly completedDays: number;
-  readonly completedSet: Set<string>;
-  readonly selectedDate: Date;
-  readonly showEmptyMessage?: boolean;
-  readonly style?: ViewStyle;
-}
 
 export function NutritionStreakWidget({
   completedDays,

@@ -7,12 +7,9 @@ import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { SyncWaitingProps } from "@/types/auth";
 import { useRouter } from "expo-router";
 import { X } from "lucide-react-native";
-
-interface SyncWaitingProps {
-  myCode?: string;
-}
 
 export const SyncWaiting = ({ myCode }: SyncWaitingProps) => {
   const { t } = useTranslation();

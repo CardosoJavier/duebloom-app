@@ -7,7 +7,7 @@ import {
   StatsHistoryPage,
   StatsSummary,
 } from "@/types/progress";
-import { supabase } from "@/util/supabase";
+import { supabase } from "@/services/supabase";
 import { format, subDays } from "date-fns";
 
 const PAGE_SIZE = 10;

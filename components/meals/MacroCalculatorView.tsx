@@ -22,21 +22,28 @@ import { Pressable } from "@/components/ui/pressable";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { WidgetCard } from "@/components/ui/widget-card";
-import { recompApi } from "@/api/recomp-api";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { useSavePlan } from "@/hooks/useSavePlan";
 import { calculateBulk } from "@/services/macros/BulkCalculatorService";
 import { calculateCut } from "@/services/macros/CutCalculatorService";
 import { calculateRecomp } from "@/services/macros/RecompCalculatorService";
+import {
+  formatImperialHeightInput,
+  lbsToKg,
+  parseFeetInchesString,
+} from "@/services/weight";
+import { useAuthStore } from "@/store/authStore";
 import {
   ActivityLevel,
   BodyRecompPlanInput,
   DayOfWeek,
   MacroCalculatorResult,
+  MacroKey,
   MacroMode,
   RecompCalculatorResult,
   Sex,
+  WeightInputUnit,
 } from "@/types/macros";
-import { useAppToast } from "@/hooks/use-app-toast";
-import { useAuthStore } from "@/store/authStore";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
@@ -49,36 +56,13 @@ const ACTIVITY_LEVELS: ActivityLevel[] = [
   "extra_active",
 ];
 
-const MACRO_ITEM_COLORS = {
+const MACRO_ITEM_COLORS: Record<MacroKey, string> = {
   protein: "bg-blue-500",
   carbs: "bg-amber-500",
   fat: "bg-red-400",
-} as const;
-
-type MacroKey = keyof typeof MACRO_ITEM_COLORS;
+};
 
 const MODE_KEYS: MacroMode[] = ["cut", "bulk", "recomp"];
-
-type UnitSystem = "metric" | "imperial";
-
-function lbsToKg(lbs: number): number {
-  return lbs * 0.453592;
-}
-
-// "5'10" format → cm
-function feetInchesToCm(value: string): number {
-  const [feetPart, inchesPart] = value.split("'");
-  const feet = Number.parseInt(feetPart, 10) || 0;
-  const inches = Number.parseInt(inchesPart ?? "0", 10) || 0;
-  return feet * 30.48 + inches * 2.54;
-}
-
-// Auto-formats raw digit input into feet'inches (e.g. "510" → "5'10")
-function formatImperialHeight(raw: string): string {
-  const digits = raw.replaceAll(/[^0-9]/g, "");
-  if (digits.length <= 1) return digits;
-  return digits[0] + "'" + digits.slice(1, 3); // cap inches part at 2 digits
-}
 
 export function MacroCalculatorView() {
   const { t } = useTranslation();
@@ -98,10 +82,16 @@ export function MacroCalculatorView() {
   const [useCustomSurplus, setUseCustomSurplus] = useState(false);
   const [surplusPercent, setSurplusPercent] = useState("10");
   const [result, setResult] = useState<MacroCalculatorResult | null>(null);
-  const [recompResult, setRecompResult] = useState<RecompCalculatorResult | null>(null);
-  const [trainingDays, setTrainingDays] = useState<DayOfWeek[]>(["mon", "wed", "fri"]);
-  const [isSavingPlan, setIsSavingPlan] = useState(false);
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>("metric");
+  const [recompResult, setRecompResult] =
+    useState<RecompCalculatorResult | null>(null);
+  const [trainingDays, setTrainingDays] = useState<DayOfWeek[]>([
+    "mon",
+    "wed",
+    "fri",
+  ]);
+  const [unitSystem, setUnitSystem] = useState<WeightInputUnit>("metric");
+
+  const savePlanMutation = useSavePlan(user?.id);
 
   const modeLabels = MODE_KEYS.map((m) => t(`macros.mode_${m}`));
   const activeModeLabel = t(`macros.mode_${mode}`);
@@ -113,7 +103,7 @@ export function MacroCalculatorView() {
     setRecompResult(null);
   };
 
-  const handleUnitChange = (system: UnitSystem) => {
+  const handleUnitChange = (system: WeightInputUnit) => {
     setUnitSystem(system);
     setWeight("");
     setHeight("");
@@ -135,7 +125,8 @@ export function MacroCalculatorView() {
     if (!isFormValid) return;
 
     const weightKg = unitSystem === "imperial" ? lbsToKg(rawW) : rawW;
-    const heightCm = unitSystem === "imperial" ? feetInchesToCm(height) : rawH;
+    const heightCm =
+      unitSystem === "imperial" ? parseFeetInchesString(height) : rawH;
 
     const input = {
       weightKg,
@@ -150,14 +141,20 @@ export function MacroCalculatorView() {
         mode === "bulk" ? Number.parseFloat(surplusPercent) || 10 : undefined,
     };
 
-    if (mode === "cut") { setResult(calculateCut(input)); setRecompResult(null); }
-    else if (mode === "bulk") { setResult(calculateBulk(input)); setRecompResult(null); }
-    else { setRecompResult(calculateRecomp(input)); setResult(null); }
+    if (mode === "cut") {
+      setResult(calculateCut(input));
+      setRecompResult(null);
+    } else if (mode === "bulk") {
+      setResult(calculateBulk(input));
+      setRecompResult(null);
+    } else {
+      setRecompResult(calculateRecomp(input));
+      setResult(null);
+    }
   };
 
-  const handleSavePlan = async () => {
+  const handleSavePlan = () => {
     if (!recompResult || !user) return;
-    setIsSavingPlan(true);
     const planInput: BodyRecompPlanInput = {
       userId: user.id,
       trainingCalories: recompResult.training.calories,
@@ -170,13 +167,10 @@ export function MacroCalculatorView() {
       restFatGrams: recompResult.rest.fatGrams,
       trainingDays,
     };
-    const saveResult = await recompApi.saveBodyRecompPlan(planInput);
-    setIsSavingPlan(false);
-    if (saveResult.success) {
-      toast.success(t("macros.plan_saved"));
-    } else {
-      toast.error(t("macros.save_plan_error"));
-    }
+    savePlanMutation.mutate(planInput, {
+      onSuccess: () => toast.success(t("macros.plan_saved")),
+      onError: () => toast.error(t("macros.save_plan_error")),
+    });
   };
 
   const sexOptions: Sex[] = ["male", "female"];
@@ -189,21 +183,47 @@ export function MacroCalculatorView() {
       ]
     : [];
 
-  const trainingMacroRows: { key: MacroKey; grams: number; pct: number }[] = recompResult
-    ? [
-        { key: "protein", grams: recompResult.training.proteinGrams, pct: recompResult.training.proteinPercent },
-        { key: "carbs", grams: recompResult.training.carbsGrams, pct: recompResult.training.carbsPercent },
-        { key: "fat", grams: recompResult.training.fatGrams, pct: recompResult.training.fatPercent },
-      ]
-    : [];
+  const trainingMacroRows: { key: MacroKey; grams: number; pct: number }[] =
+    recompResult
+      ? [
+          {
+            key: "protein",
+            grams: recompResult.training.proteinGrams,
+            pct: recompResult.training.proteinPercent,
+          },
+          {
+            key: "carbs",
+            grams: recompResult.training.carbsGrams,
+            pct: recompResult.training.carbsPercent,
+          },
+          {
+            key: "fat",
+            grams: recompResult.training.fatGrams,
+            pct: recompResult.training.fatPercent,
+          },
+        ]
+      : [];
 
-  const restMacroRows: { key: MacroKey; grams: number; pct: number }[] = recompResult
-    ? [
-        { key: "protein", grams: recompResult.rest.proteinGrams, pct: recompResult.rest.proteinPercent },
-        { key: "carbs", grams: recompResult.rest.carbsGrams, pct: recompResult.rest.carbsPercent },
-        { key: "fat", grams: recompResult.rest.fatGrams, pct: recompResult.rest.fatPercent },
-      ]
-    : [];
+  const restMacroRows: { key: MacroKey; grams: number; pct: number }[] =
+    recompResult
+      ? [
+          {
+            key: "protein",
+            grams: recompResult.rest.proteinGrams,
+            pct: recompResult.rest.proteinPercent,
+          },
+          {
+            key: "carbs",
+            grams: recompResult.rest.carbsGrams,
+            pct: recompResult.rest.carbsPercent,
+          },
+          {
+            key: "fat",
+            grams: recompResult.rest.fatGrams,
+            pct: recompResult.rest.fatPercent,
+          },
+        ]
+      : [];
 
   return (
     <KeyboardAvoidingView
@@ -229,7 +249,7 @@ export function MacroCalculatorView() {
             title={t("macros.personal_info")}
             headerRight={
               <HStack space="xs">
-                {(["metric", "imperial"] as UnitSystem[]).map((sys) => {
+                {(["metric", "imperial"] as WeightInputUnit[]).map((sys) => {
                   const isActive = unitSystem === sys;
                   return (
                     <Pressable
@@ -292,7 +312,7 @@ export function MacroCalculatorView() {
                       value={height}
                       onChangeText={(text) => {
                         if (unitSystem === "imperial") {
-                          setHeight(formatImperialHeight(text));
+                          setHeight(formatImperialHeightInput(text));
                         } else {
                           setHeight(text);
                         }
@@ -479,7 +499,10 @@ export function MacroCalculatorView() {
                 <Text className="text-typography-500 text-xs">
                   {t("macros.training_schedule_hint")}
                 </Text>
-                <DaySelector selectedDays={trainingDays} onChange={setTrainingDays} />
+                <DaySelector
+                  selectedDays={trainingDays}
+                  onChange={setTrainingDays}
+                />
               </VStack>
             </WidgetCard>
           )}
@@ -587,13 +610,17 @@ export function MacroCalculatorView() {
               <WidgetCard title={t("macros.results")}>
                 <VStack space="xs">
                   <HStack className="justify-between items-center py-1.5">
-                    <Text className="text-typography-500 text-sm">{t("macros.bmr")}</Text>
+                    <Text className="text-typography-500 text-sm">
+                      {t("macros.bmr")}
+                    </Text>
                     <Text className="text-typography-800 dark:text-typography-100 font-semibold">
                       {recompResult.bmr} kcal
                     </Text>
                   </HStack>
                   <HStack className="justify-between items-center py-1.5">
-                    <Text className="text-typography-500 text-sm">{t("macros.tdee")}</Text>
+                    <Text className="text-typography-500 text-sm">
+                      {t("macros.tdee")}
+                    </Text>
                     <Text className="text-typography-800 dark:text-typography-100 font-semibold">
                       {recompResult.tdee} kcal
                     </Text>
@@ -613,9 +640,14 @@ export function MacroCalculatorView() {
                     </Text>
                   </HStack>
                   {trainingMacroRows.map(({ key, grams, pct }) => (
-                    <HStack key={key} className="justify-between items-center py-2">
+                    <HStack
+                      key={key}
+                      className="justify-between items-center py-2"
+                    >
                       <HStack space="sm" className="items-center">
-                        <Box className={`w-2.5 h-2.5 rounded-full ${MACRO_ITEM_COLORS[key]}`} />
+                        <Box
+                          className={`w-2.5 h-2.5 rounded-full ${MACRO_ITEM_COLORS[key]}`}
+                        />
                         <Text className="text-typography-700 dark:text-typography-200 font-medium capitalize">
                           {t(`macros.${key}`)}
                         </Text>
@@ -645,9 +677,14 @@ export function MacroCalculatorView() {
                     </Text>
                   </HStack>
                   {restMacroRows.map(({ key, grams, pct }) => (
-                    <HStack key={key} className="justify-between items-center py-2">
+                    <HStack
+                      key={key}
+                      className="justify-between items-center py-2"
+                    >
                       <HStack space="sm" className="items-center">
-                        <Box className={`w-2.5 h-2.5 rounded-full ${MACRO_ITEM_COLORS[key]}`} />
+                        <Box
+                          className={`w-2.5 h-2.5 rounded-full ${MACRO_ITEM_COLORS[key]}`}
+                        />
                         <Text className="text-typography-700 dark:text-typography-200 font-medium capitalize">
                           {t(`macros.${key}`)}
                         </Text>
@@ -671,7 +708,7 @@ export function MacroCalculatorView() {
                 variant="outline"
                 className="h-14"
                 onPress={handleSavePlan}
-                isDisabled={isSavingPlan}
+                isDisabled={savePlanMutation.isPending}
               >
                 <ButtonText>{t("macros.save_plan")}</ButtonText>
               </Button>

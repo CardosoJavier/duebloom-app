@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Globe, Monitor, Moon, Scale, Sun, X } from "lucide-react-native";
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { Modal as RNModal, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,12 +13,8 @@ import { VStack } from "@/components/ui/vstack";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useAppStore } from "@/store/appStore";
 import { useAuthStore } from "@/store/authStore";
+import { AppSettingsModalProps } from "@/types/profile";
 import { Language, UnitSystem } from "@/types/user";
-
-interface AppSettingsModalProps {
-  readonly isOpen: boolean;
-  readonly onClose: () => void;
-}
 
 export function AppSettingsModal({ isOpen, onClose }: AppSettingsModalProps) {
   const { t } = useTranslation();

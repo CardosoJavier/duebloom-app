@@ -8,3 +8,27 @@ export interface AuthResponse {
     expires_in: number;
   } | null;
 }
+
+// ── Auth component Props ───────────────────────────────────────────────────────
+
+export interface AuthContainerProps {
+  readonly children: React.ReactNode;
+}
+
+export interface SyncInputProps {
+  readonly myCode?: string;
+  readonly isLoading: boolean;
+  readonly onConnect: (code: string) => void;
+}
+
+export interface SyncWaitingProps {
+  readonly myCode?: string;
+  readonly onCancel?: () => void;
+}
+
+export interface SyncFoundProps {
+  readonly partnerName: string;
+  readonly isLoading: boolean;
+  readonly isConfirmed: boolean;
+  readonly onConfirm: () => void;
+}

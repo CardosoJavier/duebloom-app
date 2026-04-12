@@ -1,28 +1,14 @@
 import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
+import { getDaysInMonth, toDateKey } from "@/services/date";
+import { CalendarGridCell, CalendarGridProps } from "@/types/streaks";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 const weekdayLabels = ["S", "M", "T", "W", "T", "F", "S"];
 
-type CalendarCell = {
-  key: string;
-  day: number | null;
-};
-
-const getDaysInMonth = (date: Date): number => {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-};
-
-const toDateKey = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-const buildCalendarCells = (displayMonth: Date): CalendarCell[] => {
+const buildCalendarCells = (displayMonth: Date): CalendarGridCell[] => {
   const firstWeekDay = new Date(
     displayMonth.getFullYear(),
     displayMonth.getMonth(),
@@ -30,7 +16,7 @@ const buildCalendarCells = (displayMonth: Date): CalendarCell[] => {
   ).getDay();
 
   const daysInMonth = getDaysInMonth(displayMonth);
-  const cells: CalendarCell[] = [];
+  const cells: CalendarGridCell[] = [];
   const timePrefix = displayMonth.getTime();
 
   for (let i = 0; i < firstWeekDay; i += 1) {
@@ -50,11 +36,6 @@ const buildCalendarCells = (displayMonth: Date): CalendarCell[] => {
 
   return cells;
 };
-
-interface CalendarGridProps {
-  readonly selectedDate: Date;
-  readonly completedSet: Set<string>;
-}
 
 export function CalendarGrid({
   selectedDate,

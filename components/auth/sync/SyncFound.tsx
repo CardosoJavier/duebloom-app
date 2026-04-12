@@ -12,13 +12,7 @@ import {
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-
-interface SyncFoundProps {
-  onConfirm: () => void;
-  isLoading: boolean;
-  isConfirmed: boolean;
-  partnerName?: string;
-}
+import { SyncFoundProps } from "@/types/auth";
 
 export const SyncFound = ({
   onConfirm,
@@ -61,32 +55,42 @@ export const SyncFound = ({
         </Text>
       </VStack>
 
-      <Button
-        size="xl"
-        className={`w-full rounded-xl ${
-          isConfirmed ? "bg-emerald-500" : "bg-lavender-500"
-        }`}
-        onPress={onConfirm}
-        isDisabled={isLoading || isConfirmed}
-      >
-        {isLoading ? (
-          <ButtonSpinner color="white" />
-        ) : isConfirmed ? (
-          <>
-            <ButtonText className="font-bold text-white text-lg">
-              {t("auth.waiting_for_partner")}
-            </ButtonText>
-            <ButtonIcon as={CheckCircle} className="ml-2 text-white" />
-          </>
-        ) : (
-          <>
-            <ButtonText className="font-bold text-white text-lg">
-              {t("auth.confirm_sync")}
-            </ButtonText>
-            <ButtonIcon as={User} className="ml-2 text-white" />
-          </>
-        )}
-      </Button>
+      {(() => {
+        let buttonContent: React.ReactNode;
+        if (isLoading) {
+          buttonContent = <ButtonSpinner color="white" />;
+        } else if (isConfirmed) {
+          buttonContent = (
+            <>
+              <ButtonText className="font-bold text-white text-lg">
+                {t("auth.waiting_for_partner")}
+              </ButtonText>
+              <ButtonIcon as={CheckCircle} className="ml-2 text-white" />
+            </>
+          );
+        } else {
+          buttonContent = (
+            <>
+              <ButtonText className="font-bold text-white text-lg">
+                {t("auth.confirm_sync")}
+              </ButtonText>
+              <ButtonIcon as={User} className="ml-2 text-white" />
+            </>
+          );
+        }
+        return (
+          <Button
+            size="xl"
+            className={`w-full rounded-xl ${
+              isConfirmed ? "bg-emerald-500" : "bg-lavender-500"
+            }`}
+            onPress={onConfirm}
+            isDisabled={isLoading || isConfirmed}
+          >
+            {buttonContent}
+          </Button>
+        );
+      })()}
     </VStack>
   );
 };

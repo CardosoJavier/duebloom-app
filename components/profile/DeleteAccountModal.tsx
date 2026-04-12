@@ -12,20 +12,11 @@ import {
 } from "@/components/ui/modal";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { DeleteAccountModalProps } from "@/types/profile";
 import { AlertTriangle, X } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator } from "react-native";
-
-interface DeleteAccountModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  inputCode: string;
-  onInputChange: (value: string) => void;
-  canDelete: boolean;
-  isDeleting: boolean;
-  onConfirm: () => void;
-}
 
 export function DeleteAccountModal({
   isOpen,
