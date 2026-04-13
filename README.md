@@ -30,6 +30,65 @@ DuoBloom supports multiple languages to cater to a diverse user base.
 
 ---
 
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org) (v18 or later)
+- [Xcode](https://developer.apple.com/xcode/) (for iOS — macOS only)
+- [Android Studio](https://developer.android.com/studio) + Android SDK (for Android)
+- Expo CLI — installed automatically via `npx`
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-org/duobloom.git
+cd duobloom/duebloom-app
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment
+
+Copy the example env file and fill in your Supabase credentials:
+
+```bash
+cp .env.example .env
+```
+
+### 4. Run on iOS
+
+```bash
+npx expo run:ios --no-build-cache
+```
+
+### 5. Run on Android
+
+```bash
+npx expo run:android --no-build-cache
+```
+
+---
+
+### TypeScript errors in VS Code?
+
+If VS Code shows TypeScript errors after opening the project (e.g. `Cannot use JSX`, `esModuleInterop`, or `expo/tsconfig.base not found`), the editor is using its built-in TypeScript instead of the workspace version.
+
+Fix it with a one-time step:
+
+1. Open the Command Palette: `Cmd + Shift + P`
+2. Run **"TypeScript: Select TypeScript Version"**
+3. Select **"Use Workspace Version"**
+4. If errors persist, run **"TypeScript: Restart TS Server"** from the same palette
+
+VS Code remembers this choice going forward.
+
+---
+
 ## Detailed Feature Breakdown
 
 ### 1. Authentication & Onboarding

@@ -8,12 +8,12 @@ import { create } from "zustand";
 type Theme = "light" | "dark" | "system";
 type ColorScheme = "light" | "dark";
 
-const SUPPORTED_LANGS = ["en", "es"];
+const SUPPORTED_LANGS = new Set(["en", "es"]);
 
 function resolveLanguage(lang: Language): string {
   if (lang === "system") {
     const deviceLang = Localization.getLocales()[0]?.languageCode ?? "en";
-    return SUPPORTED_LANGS.includes(deviceLang) ? deviceLang : "en";
+    return SUPPORTED_LANGS.has(deviceLang) ? deviceLang : "en";
   }
   return lang;
 }
@@ -76,7 +76,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         isThemeHydrated: true,
       });
     } catch (e) {
-      // An error occurred, so we'll just use defaults
+      console.warn("[appStore] Failed to hydrate theme/language settings:", e);
       set({ isThemeHydrated: true });
     }
   },
