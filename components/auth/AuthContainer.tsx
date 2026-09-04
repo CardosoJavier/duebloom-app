@@ -4,7 +4,7 @@ import { Center } from "@/components/ui/center";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { AuthContainerProps } from "@/types/auth";
-import { Heart } from "lucide-react-native";
+import { Users } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -32,7 +32,7 @@ export function AuthContainer({ children }: AuthContainerProps) {
           >
             <Center className="mt-8 mb-10">
               <Box className="w-16 h-16 bg-lavender-500/10 rounded-full justify-center items-center mb-4">
-                <Heart size={32} color="#9FA0FF" fill="#9FA0FF" />
+                <Users size={32} color="#9FA0FF" fill="#9FA0FF" />
               </Box>
               <Heading
                 size="3xl"

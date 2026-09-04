@@ -17,7 +17,6 @@ import { useRouter } from "expo-router";
 import {
   ChevronRight,
   Copy,
-  Heart,
   Link as LinkIcon,
   User,
   Users,
@@ -126,7 +125,7 @@ export default function ProfileScreen() {
                     </Box>
                     <Box className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1 border-2 border-background-50">
                       <Icon
-                        as={Heart}
+                        as={Users}
                         size="xs"
                         className="text-white w-3 h-3"
                       />
@@ -163,7 +162,7 @@ export default function ProfileScreen() {
                   className="w-full rounded-xl mt-1"
                   onPress={() => router.push("/sync")}
                 >
-                  <ButtonIcon as={Heart} className="mr-2 text-white" />
+                  <ButtonIcon as={Users} className="mr-2 text-white" />
                   <ButtonText className="font-bold">
                     {t("profile.sync_cta_button")}
                   </ButtonText>

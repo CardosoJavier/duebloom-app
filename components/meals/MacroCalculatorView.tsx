@@ -91,6 +91,11 @@ export function MacroCalculatorView() {
   ]);
   const [unitSystem, setUnitSystem] = useState<WeightInputUnit>("metric");
 
+  // Recomp-specific inputs
+  const [recompWeightLbs, setRecompWeightLbs] = useState("");
+  const [recompTrainingCals, setRecompTrainingCals] = useState("");
+  const [recompRestCals, setRecompRestCals] = useState("");
+
   const savePlanMutation = useSavePlan(user?.id);
 
   const modeLabels = MODE_KEYS.map((m) => t(`macros.mode_${m}`));
@@ -112,17 +117,34 @@ export function MacroCalculatorView() {
   };
 
   const isFormValid =
-    Number.parseFloat(weight) > 0 &&
-    (unitSystem === "imperial"
-      ? height.includes("'") && height.length >= 3
-      : Number.parseFloat(height) > 0) &&
-    Number.parseInt(age, 10) > 0;
+    mode === "recomp"
+      ? Number.parseFloat(recompWeightLbs) > 0 &&
+        Number.parseFloat(recompTrainingCals) > 0 &&
+        Number.parseFloat(recompRestCals) > 0
+      : Number.parseFloat(weight) > 0 &&
+        (unitSystem === "imperial"
+          ? height.includes("'") && height.length >= 3
+          : Number.parseFloat(height) > 0) &&
+        Number.parseInt(age, 10) > 0;
 
   const handleCalculate = () => {
+    if (!isFormValid) return;
+
+    if (mode === "recomp") {
+      setRecompResult(
+        calculateRecomp({
+          weightLbs: Number.parseFloat(recompWeightLbs),
+          trainingCalories: Number.parseFloat(recompTrainingCals),
+          restCalories: Number.parseFloat(recompRestCals),
+        }),
+      );
+      setResult(null);
+      return;
+    }
+
     const rawW = Number.parseFloat(weight);
     const rawH = Number.parseFloat(height);
     const a = Number.parseInt(age, 10);
-    if (!isFormValid) return;
 
     const weightKg = unitSystem === "imperial" ? lbsToKg(rawW) : rawW;
     const heightCm =
@@ -144,12 +166,9 @@ export function MacroCalculatorView() {
     if (mode === "cut") {
       setResult(calculateCut(input));
       setRecompResult(null);
-    } else if (mode === "bulk") {
+    } else {
       setResult(calculateBulk(input));
       setRecompResult(null);
-    } else {
-      setRecompResult(calculateRecomp(input));
-      setResult(null);
     }
   };
 
@@ -244,8 +263,66 @@ export function MacroCalculatorView() {
             containerStyle="mb-2"
           />
 
+          {/* Recomp Inputs */}
+          {mode === "recomp" && (
+            <WidgetCard title={t("macros.recomp_inputs")}>
+              <VStack space="md">
+                <Text className="text-typography-500 text-xs">
+                  {t("macros.recomp_hint")}
+                </Text>
+                <FormControl>
+                  <FormControlLabel>
+                    <FormControlLabelText className="text-typography-500 text-xs">
+                      {t("macros.weight_lbs")}
+                    </FormControlLabelText>
+                  </FormControlLabel>
+                  <Input variant="soft" size="md">
+                    <InputField
+                      value={recompWeightLbs}
+                      onChangeText={setRecompWeightLbs}
+                      keyboardType="decimal-pad"
+                      placeholder="155"
+                    />
+                  </Input>
+                </FormControl>
+                <HStack space="md">
+                  <FormControl className="flex-1">
+                    <FormControlLabel>
+                      <FormControlLabelText className="text-typography-500 text-xs">
+                        {t("macros.training_calories")}
+                      </FormControlLabelText>
+                    </FormControlLabel>
+                    <Input variant="soft" size="md">
+                      <InputField
+                        value={recompTrainingCals}
+                        onChangeText={setRecompTrainingCals}
+                        keyboardType="number-pad"
+                        placeholder="2500"
+                      />
+                    </Input>
+                  </FormControl>
+                  <FormControl className="flex-1">
+                    <FormControlLabel>
+                      <FormControlLabelText className="text-typography-500 text-xs">
+                        {t("macros.rest_calories")}
+                      </FormControlLabelText>
+                    </FormControlLabel>
+                    <Input variant="soft" size="md">
+                      <InputField
+                        value={recompRestCals}
+                        onChangeText={setRecompRestCals}
+                        keyboardType="number-pad"
+                        placeholder="2000"
+                      />
+                    </Input>
+                  </FormControl>
+                </HStack>
+              </VStack>
+            </WidgetCard>
+          )}
+
           {/* Personal Info */}
-          <WidgetCard
+          {mode !== "recomp" && <WidgetCard
             title={t("macros.personal_info")}
             headerRight={
               <HStack space="xs">
@@ -401,7 +478,7 @@ export function MacroCalculatorView() {
                 </Pressable>
               </FormControl>
             </VStack>
-          </WidgetCard>
+          </WidgetCard>}
 
           {/* Goal Settings — Cut / Bulk only */}
           {mode !== "recomp" && (
@@ -488,21 +565,6 @@ export function MacroCalculatorView() {
                     )}
                   </VStack>
                 )}
-              </VStack>
-            </WidgetCard>
-          )}
-
-          {/* Training Schedule — Recomp only */}
-          {mode === "recomp" && (
-            <WidgetCard title={t("macros.training_schedule")}>
-              <VStack space="sm">
-                <Text className="text-typography-500 text-xs">
-                  {t("macros.training_schedule_hint")}
-                </Text>
-                <DaySelector
-                  selectedDays={trainingDays}
-                  onChange={setTrainingDays}
-                />
               </VStack>
             </WidgetCard>
           )}
@@ -606,28 +668,6 @@ export function MacroCalculatorView() {
           {/* Recomp Results */}
           {recompResult && (
             <VStack space="md">
-              {/* BMR / TDEE summary */}
-              <WidgetCard title={t("macros.results")}>
-                <VStack space="xs">
-                  <HStack className="justify-between items-center py-1.5">
-                    <Text className="text-typography-500 text-sm">
-                      {t("macros.bmr")}
-                    </Text>
-                    <Text className="text-typography-800 dark:text-typography-100 font-semibold">
-                      {recompResult.bmr} kcal
-                    </Text>
-                  </HStack>
-                  <HStack className="justify-between items-center py-1.5">
-                    <Text className="text-typography-500 text-sm">
-                      {t("macros.tdee")}
-                    </Text>
-                    <Text className="text-typography-800 dark:text-typography-100 font-semibold">
-                      {recompResult.tdee} kcal
-                    </Text>
-                  </HStack>
-                </VStack>
-              </WidgetCard>
-
               {/* Training Day Card */}
               <WidgetCard title={t("macros.training_day")}>
                 <VStack space="xs">
@@ -699,6 +739,19 @@ export function MacroCalculatorView() {
                       </HStack>
                     </HStack>
                   ))}
+                </VStack>
+              </WidgetCard>
+
+              {/* Training Schedule */}
+              <WidgetCard title={t("macros.training_schedule")}>
+                <VStack space="sm">
+                  <Text className="text-typography-500 text-xs">
+                    {t("macros.training_schedule_hint")}
+                  </Text>
+                  <DaySelector
+                    selectedDays={trainingDays}
+                    onChange={setTrainingDays}
+                  />
                 </VStack>
               </WidgetCard>
 

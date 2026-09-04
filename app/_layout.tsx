@@ -1,4 +1,3 @@
-import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import {
   QueryClient,
   QueryClientProvider,
@@ -99,10 +98,8 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <GluestackUIProvider mode={theme}>
-        <ThemeProvider value={DefaultTheme}>
-          <InitialLayout />
-          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-        </ThemeProvider>
+        <InitialLayout />
+        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       </GluestackUIProvider>
     </QueryClientProvider>
   );

@@ -51,7 +51,11 @@
         }
       ],
       "react-native-health",
-      "react-native-health-connect"
+      "react-native-health-connect",
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

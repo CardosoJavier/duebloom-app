@@ -1,6 +1,6 @@
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
-import { ArrowRight, Copy, Heart, User, X } from "lucide-react-native";
+import { ArrowRight, Copy, Users, User, X } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -87,7 +87,7 @@ export const SyncInput = ({ myCode, onConnect, isLoading }: SyncInputProps) => {
             isDisabled={isLoading}
           >
             <InputSlot className="pl-4">
-              <InputIcon as={Heart} className="text-rose-400" />
+              <InputIcon as={Users} className="text-rose-400" />
             </InputSlot>
             <InputField
               placeholder={t("auth.enter_partner_code_placeholder")}

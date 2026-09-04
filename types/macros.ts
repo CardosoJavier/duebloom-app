@@ -50,9 +50,13 @@ export interface RecompDayProfile {
   fatPercent: number;
 }
 
+export interface RecompInput {
+  weightLbs: number;
+  trainingCalories: number;
+  restCalories: number;
+}
+
 export interface RecompCalculatorResult {
-  bmr: number;
-  tdee: number;
   training: RecompDayProfile;
   rest: RecompDayProfile;
 }

@@ -1,4 +1,4 @@
-import { CheckCircle, Heart, User } from "lucide-react-native";
+import { CheckCircle, Users, User } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
@@ -32,7 +32,7 @@ export const SyncFound = ({
 
         {/* Heart Connector */}
         <View className="w-12 h-12 rounded-full bg-lavender-100 dark:bg-slate-800 items-center justify-center -ml-4 z-20 border-4 border-white dark:border-slate-800 shadow-sm">
-          <Heart size={20} color="#9FA0FF" fill="#9FA0FF" />
+          <Users size={20} color="#9FA0FF" fill="#9FA0FF" />
         </View>
 
         {/* Partner Avatar */}
